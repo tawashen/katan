@@ -1,0 +1,8 @@
+#lang racket
+
+(struct WORLD (PLAYERS MAP PHASE TURN))
+(struct PLAYER (NAME COLOR CARDS ROAD VILLAGE TOWN))
+(struct CARD (WOOD IRON SHEEP BLOCK))
+
+
+ 
