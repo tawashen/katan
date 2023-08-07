@@ -17,19 +17,28 @@
                      (3 4 0 1 2)
                      (4 0 1 2 3)))
 
+(define (x32 x y)
+  (make-posn (case x
+                ((1) 32)
+                (else (+ (* x 32) (* (- x 1) 32))))
+              (case y
+                ((1) 32)
+                 (else (+ (* y 32) (* (- y 1) 32))))))
+
 (place-images
- (list
-               (square 64 "solid" "red") 
-               (square 64 "solid" "white")
-               (square 64 "solid" "green")
-               (square 64 "solid" "yellow"))
- (list
-  (make-posn 32 32)
-  (make-posn 96 32)
-  (make-posn 32 96)
-  (make-posn 96 96))
- (rectangle 128 128 "solid" "blue"))
-              
+ (map (lambda (x) (square 64 "solid"
+                         (case x
+                           ((0) "red")
+                           ((1) "white")
+                           ((2) "green")
+                           ((3) "yellow")
+                           (else "blue")))) (flatten *map-zero*))
+  (flatten (for/list ((i (iota 5 1 1)))
+             (for/list ((j (iota 5 1 1)))
+    (x32 i j))))
+ (rectangle 320 320 "solid" "blue"))
+
+
 
 
   
