@@ -53,6 +53,11 @@
 
 (place-road)
 
+(define cross-p '(#f #f #f #f #f #f #f #f #f 1 #f #f #f #f #f #f 2 #f #f #f #f #f #f #f #f)) ;25
+
+(define roads-p '(#f #f #f #f #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f 2
+                     #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;40
+
 
 
 
