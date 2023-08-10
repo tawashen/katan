@@ -88,8 +88,7 @@
 
 (define (place-road)
   (place-images/align
- ;  (list
-   ; (circle 10 "solid" "yellow")
+
     (let loop ((lst *roads-p*) (count 1) (acc '()))
       (if (null? lst)
           (reverse acc)
@@ -101,10 +100,14 @@
                                                                                          ((1) "black")
                                                                                          ((2) "blue"))))) acc)
                                           acc))))
+    
     (let loopB ((lst *roads-p*) (count 1) (acc '()))
       (if (null? lst)
           (reverse acc)
-          (loopB (cdr lst) (+ count 1) (if (car lst) (cons (make-posn (tate&yokoX count) (tate&yokoY count)) acc) acc))))
+          (loopB (cdr lst) (+ count 1)
+                 (if (car lst)
+                      (cons (make-posn (tate&yokoX count) (tate&yokoY count)) acc)
+                       acc))))
                                                              
   ;                     (
    ; (rectangle 60 10 "solid" "black")
