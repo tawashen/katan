@@ -10,6 +10,8 @@
 (struct PLAYER (NAME COLOR CARDS ROAD VILLAGE TOWN))
 (struct CARD (WOOD IRON SHEEP BLOCK))
 
+
+;data;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define *map-zero* '(
                      (1 2 3 4)
                      (2 3 4 1)
@@ -18,7 +20,8 @@
                      ))
 
 
-(define *cross-p* '(#f #f #f #f #f #f #f #f #f 1 #f #f #f #f #f #f 2 #f #f #f #f #f #f #f #f)) ;25
+(define *cross-p* '(t1 v1 #f #f #f #f #f #f #f v1 #f t1 v1 t1 v1 #f #f #f #f #f #f #f #f #f #f)) ;25
+
 (define *roads-p* '(1 1 #f #f #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f 2
                      #f #f #f #f #f 2 #f #f #f #f #f #f #f #f 1)) ;40
 
@@ -27,30 +30,9 @@
              (+ (* y 40) (* (- y 1) 40))))
 
 
-(define (place-map)
-(place-images/align
- (map (lambda (x) (square 80 "solid"
-                         (case x
-                           ((1) "red")
-                           ((2) "white")
-                           ((3) "green")
-                           ((4) "yellow")
-                           (else "blue")))) (flatten *map-zero*))
-  (flatten (for/list ((i (iota 4 1 1)))
-             (for/list ((j (iota 4 1 1)))
-    (x40 i j)))) "left" "top"
- (rectangle 400 400 "solid" "blue")))
 
-(define (place-town)
-(place-images/align
- (list
-  ;(text "●" 30 "olive")
-  )
- (list
-  ;(make-posn 32 28)
-  )
- "left" "top" (place-map)))
 
+;補助関数;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (tate&yoko x)
   (cond ((<= x 4) 'yoko)
@@ -86,9 +68,27 @@
         (else 356)))
   
 
+
+;map配置関係;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (place-map)
+(place-images/align
+ (map (lambda (x) (square 80 "solid"
+                         (case x
+                           ((1) "red")
+                           ((2) "white")
+                           ((3) "green")
+                           ((4) "yellow")
+                           (else "blue")))) (flatten *map-zero*))
+  (flatten (for/list ((i (iota 4 1 1)))
+             (for/list ((j (iota 4 1 1)))
+    (x40 i j)))) "left" "top"
+ (rectangle 400 400 "solid" "blue")))
+
+
+
+
 (define (place-road)
   (place-images/align
-
     (let loop ((lst *roads-p*) (count 1) (acc '()))
       (if (null? lst)
           (reverse acc)
@@ -100,37 +100,40 @@
                                                                                          ((1) "black")
                                                                                          ((2) "blue"))))) acc)
                                           acc))))
-    
     (let loopB ((lst *roads-p*) (count 1) (acc '()))
       (if (null? lst)
           (reverse acc)
           (loopB (cdr lst) (+ count 1)
                  (if (car lst)
                       (cons (make-posn (tate&yokoX count) (tate&yokoY count)) acc)
-                       acc))))
-                                                             
-  ;                     (
-   ; (rectangle 60 10 "solid" "black")
-   ; (rectangle 60 10 "solid" "black")
-   ; (rectangle 60 10 "solid" "black")
+                       acc))))                                                         
+   "left" "top" (place-map)))
 
-   ; (rectangle 10 60 "solid" "white")
-   ; (rectangle 10 60 "solid" "blue")
-   ; (rectangle 10 60 "solid" "blue")
-     ;    )
- ;  (list
- ;   (make-posn 30 30)
-  ;  (make-posn 50 36)
-  ;  (make-posn 130 36)
-  ;  (make-posn 50 116)
-    
-   ; (make-posn 34 50)　　
-   ; (make-posn 114 50)
-   ; (make-posn 114 130)
-    ;     )
-   "left" "top" (place-town)))
 
-(place-road)
+(define (place-town)
+  (place-images/align
+   (let loopA ((lst *cross-p*) (acc '()))
+     (if (null? lst) (reverse acc)
+         (loopA (cdr lst) (if (car lst)
+                              (cons (case (car lst)
+                                      ((t1) (circle 10 "solid" "black"))
+                                      ((v1) (triangle 20 "solid" "black"))
+                                      (else (circle 10 "solid" "blue"))) acc)
+                              acc))))
+   
+   (let loopB ((lst *cross-p*) (count 1) (acc '()))
+     (if (null? lst) (reverse acc)
+         (loopB (cdr lst) (+ count 1) (if (car lst)
+                                          (cons (make-posn (+ 30 (* 80 (cond
+                                                                 ((= (remainder count 5) 0) 4) 
+                                                                 (else (- (remainder count 5) 1)))))
+                                                           (+ 28 (* 80 (cond
+                                                                 ((= (remainder count 5) 0) (- (quotient count 5) 1))
+                                                                 (else (quotient count 5))))))
+                                                              acc) acc))))
+ "left" "top" (place-road)))
+
+(place-town)
 
 
 
