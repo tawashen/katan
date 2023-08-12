@@ -35,8 +35,8 @@
 ;補助関数;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (tate&yoko x)
-  (cond ((<= x 4) 'yoko)
-        ((and (>= x 5) (<= x 9)) 'tate)
+  (cond ((<= x 4) 'yoko) 
+        ((and (>= x 5) (<= x 9)) 'tate) 
         ((and (>= x 10) (<= x 13)) 'yoko)
         ((and (>= x 14) (<= x 18)) 'tate)
         ((and (>= x 19) (<= x 22)) 'yoko)
@@ -133,7 +133,35 @@
                                                               acc) acc))))
  "left" "top" (place-road)))
 
-(place-town)
+
+(define number-list '(1 2 3 4 5 5 6 6 7 8 8 9 9 10 11 12))
+(define number-list-S (shuffle number-list))
+
+(define (place-number)
+  (place-images/align
+   
+   (map (lambda (x) (text (number->string x) 25 "black")) number-list-S)
+  ; (list (text "9" 25 "black")
+   ;      (text "12" 25 "black"))
+
+  (let loopB ((lst number-list-S) (count 1) (acc '()))
+     (if (null? lst) (reverse acc)
+         (loopB (cdr lst) (+ count 1) 
+                                (cons (make-posn (+ 70 (* 80 (cond
+                                                       ((= (remainder count 4) 0) 3) 
+                                                       (else (- (remainder count 4) 1)))))
+                                                 (+ 70 (* 80 (cond
+                                                       ((= (remainder count 4) 0) (- (quotient count 4) 1))
+                                                       (else (quotient count 4))))))
+                                                       acc)))) 
+   
+;   (list (make-posn 70 70)
+ ;        (make-posn 150 150))
+
+   "left" "top" (place-town)))
+
+
+(place-number)
 
 
 
