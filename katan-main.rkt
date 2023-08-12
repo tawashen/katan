@@ -20,7 +20,7 @@
                      ))
 
 
-(define *cross-p* '(t1 v1 #f #f #f #f #f #f #f v1 #f t1 v1 t1 v1 #f #f #f #f #f #f #f #f #f #f)) ;25
+(define *cross-p* '(t1 v1 v1 #f #f #f v1 v1 #f v1 #f t1 v1 t1 v1 #f #f #f #f #f #f #f #f #f #f)) ;25
 
 (define *roads-p* '(1 1 #f #f #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f 2
                      #f #f #f #f #f 2 #f #f #f #f #f #f #f #f 1)) ;40
@@ -161,11 +161,27 @@
    "left" "top" (place-town)))
 
 
-(place-number)
 
 
+;(place-number)
+
+;隣り合う交点には町村を設置できない
+;道が伸びてる交点にしか町村を設置できない
+
+(define *cross-p2* '(v1 v1 #f #f #f #f t1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;25
+(define (not-tonari? cross-map c-point)
+  (let ((c-num (- c-point 1)))
+  (if (and
+           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (- c-num 1)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (- c-num 5)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (+ c-num 1)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (+ c-num 5))))
+      #f #t)))
+
+(not-tonari? *cross-p2* 2)
 
 
+;(if (list-ref *cross-p2* 5) "OK" "NO")
 
 
 
