@@ -36,13 +36,13 @@
 
 (define (tate&yoko x)
   (cond ((<= x 4) 'yoko) 
-        ((and (>= x 5) (<= x 9)) 'tate) 
-        ((and (>= x 10) (<= x 13)) 'yoko)
-        ((and (>= x 14) (<= x 18)) 'tate)
-        ((and (>= x 19) (<= x 22)) 'yoko)
-        ((and (>= x 23) (<= x 27)) 'tate)
-        ((and (>= x 28) (<= x 31)) 'yoko)
-        ((and (>= x 32) (<= x 36)) 'tate)
+        ((<= 5 x 9) 'tate) ;(and (>= x 5) (<= x 9)) 'tate) 
+        ((<= 10 x 13) 'yoko) ; and (>= x 10) (<= x 13)) 'yoko)
+        ((<= 14 x 18) 'tate) ;(and (>= x 14) (<= x 18)) 'tate)
+        ((<= 19 x 22) 'yoko) ;(and (>= x 19) (<= x 22)) 'yoko)
+        ((<= 23 x 27) 'tate) ;(and (>= x 23) (<= x 27)) 'tate)
+        ((<= 28 x 31) 'yoko) ;(>= x 28) (<= x 31)) 'yoko)
+        ((<= 32 x 36) 'tate) ; (>= x 32) (<= x 36)) 'tate)
         (else 'yoko)))
 
 (define (tate&yokoX x)
@@ -138,13 +138,9 @@
 (define number-list-S (shuffle number-list))
 
 (define (place-number)
-  (place-images/align
-   
+  (place-images/align  
    (map (lambda (x) (text (number->string x) 25 "black")) number-list-S)
-  ; (list (text "9" 25 "black")
-   ;      (text "12" 25 "black"))
-
-  (let loopB ((lst number-list-S) (count 1) (acc '()))
+   (let loopB ((lst number-list-S) (count 1) (acc '()))
      (if (null? lst) (reverse acc)
          (loopB (cdr lst) (+ count 1) 
                                 (cons (make-posn (+ 70 (* 80 (cond
@@ -154,19 +150,15 @@
                                                        ((= (remainder count 4) 0) (- (quotient count 4) 1))
                                                        (else (quotient count 4))))))
                                                        acc)))) 
-   
-;   (list (make-posn 70 70)
- ;        (make-posn 150 150))
-
    "left" "top" (place-town)))
 
 
 
 
-;(place-number)
+(place-number)
 
 ;隣り合う交点には町村を設置できない
-;道が伸びてる交点にしか町村を設置できない
+
 
 (define *cross-p2* '(v1 v1 #f #f #f #f t1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;25
 (define (not-tonari? cross-map c-point)
@@ -181,9 +173,27 @@
 (not-tonari? *cross-p2* 2)
 
 
-;(if (list-ref *cross-p2* 5) "OK" "NO")
+;道が伸びてる交点にしか町村を設置できない
 
+(define *roads-p2* '(1 1 #f #f #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f 2
+                     #f #f #f #f #f 2 #f #f #f #f #f #f #f #f 1)) ;40
 
+;p2                  r #f 1 2 6                                       1-5
+;point7の場合　road6,10,11,15  P8 R7,11,12,16     6-10
+;point12        r15,19,20,24      P13 r16,20,21,25  11-15
+;point17       r24 28 29 33      P18 r25 29 30 34   16-20
+;p22             r33 37 38 42                                     21-25
+#|
+(define (road-kiteru? road-map player c-point)
+  (let ((c-num (- c-point 1)))
+    (if (and
+           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (- c-num 1)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (- c-num 5)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (+ c-num 1)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (+ c-num 5))))
+        )))
+
+|#
 
 
 
