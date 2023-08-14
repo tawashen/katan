@@ -22,8 +22,8 @@
 
 (define *cross-p* '(#f #f #f #f #f #f v1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;25
 
-(define *roads-p* '(1 1 #f #f #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f 2
-                     #f #f #f #f #f 2 #f #f #f #f #f #f #f #f 1)) ;40
+(define *roads-p* '(1 1 #f #f 1 #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f
+                     #f #f #f #f #f #f #f #f #f #f 1 1 #f #f #f)) ;40
 
 (define (x40 x y)
   (make-posn (+ (* x 40) (* (- x 1) 40))
@@ -155,13 +155,13 @@
 
 
 
-;(place-number)
+(place-number)
 
 ;隣り合う交点には町村を設置できない
 
 
 (define *cross-p2* '(#f #f #f #f v1 #f t1 #f #f #f #f #f #f #f v1 #f t1 #f #f #f #f #f #f #f #f)) ;25
-(define (tonari? cross-map c-point) ;隣に町村がある？
+(define (tonari-T? cross-map c-point) ;隣に町村がある？
   (let ((c-num (- c-point 1)))
   (if (or
            (with-handlers ((exn:fail? (const #f))) (and (list-ref cross-map (- c-num 1)) (not (= 0 (remainder c-num 5)))))
@@ -170,7 +170,9 @@
            (with-handlers ((exn:fail? (const #f))) (and (list-ref cross-map (+ c-num 5)) (not (>= c-point 21)))))
       #t #f)))
 
-(tonari? *cross-p2* 16)
+;(tonari-T? *cross-p2* 16)
+
+
 
 
 
@@ -184,36 +186,25 @@
 (define *roads-p2* '(1 1 #f #f #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f 2
                      #f #f #f #f #f 2 #f #f #f #f #f #f #f #f 1)) ;40
 
-;p2                  r #f 1 2 6                                       1-5
-;point7の場合　road6,10,11,15  P8 R7,11,12,16     6-10
-;point12        r15,19,20,24      P13 r16,20,21,25  11-15
-;point17       r24 28 29 33      P18 r25 29 30 34   16-20
-;p22             r33 37 38 42                                     21-25
+;p2                  r #f 1 2 6       p4 #f 3 4 8         1-5    ?(-5) -1 0 4 gyou1 
+;point7の場合　road6,10,11,15  P8 R7,11,12,16              6-10   -1 3 4 8 gyou2
+;point12        r15,19,20,24      P13 r16,20,21,25        11-15  3 7 8 12 gyou3
+;point17       r24 28 29 33      P18 r25 29 30 34         16-20  7 11 12 16 gyou4
+;p22             r33 37 38 42                             21-25  11 15 16 20 gyou5
 
-#|
+
 (define (road-kiteru? road-map player c-point)
-  (let ((c-num (- c-point 1)))
-    (if (and
-           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (- c-num 1)))
-           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (- c-num 5)))
-           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (+ c-num 1)))
-           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (+ c-num 5))))
-        )))
+  (let ((gyou-num (* 4 (quotient (- c-point 1) 5))) ;指定ポイントの存在する行数->行倍率で足す数
+        (c-num (- c-point 1))) ;list-ref用に変換したC-point
+  (if (or
+           (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (+ (- c-num 1) gyou-num));
+                                                        (not (= 0 (remainder c-num 5))))) ;left
+           (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (+ (- c-num 5) gyou-num))
+                                                        (not (<= c-point 4)))) ;up
+           (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (+ c-num gyou-num))
+                                                        (not (= 0 (remainder c-point 5))))) ;right
+           (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (+ (+ c-num 4) gyou-num))
+                                                        (not (>= c-point 21))))) ;down
+      #t #f)))
 
-
-    (cond ((<= x 5) 0)
-        ((<= 6 x 10)  50)
-        ((<= 10 x 13) 116)
-        ((<= 14 x 18) 130)
-        ((<= 19 x 22) 196)
-        ((<= 23 x 27)  210)
-        ((<= 28 x 31) 276)
-        ((<= 32 x 36) 290)
-        (else 356)))
-|#
-
-
-
-
-
-  
+(road-kiteru? *roads-p* 0 21)
