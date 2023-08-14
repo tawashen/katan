@@ -10,26 +10,202 @@
 (struct PLAYER (NAME COLOR CARDS ROAD VILLAGE TOWN))
 (struct CARD (WOOD IRON SHEEP BLOCK))
 
-(define *map-zero* '(
-                     (0 1 2 3 4)
-                     (1 2 3 4 0)
-                     (2 3 4 0 1)
-                     (3 4 0 1 2)
-                     (4 0 1 2 3)))
 
-(place-images
- (list
-               (square 64 "solid" "red") 
-               (square 64 "solid" "white")
-               (square 64 "solid" "green")
-               (square 64 "solid" "yellow"))
- (list
-  (make-posn 32 32)
-  (make-posn 96 32)
-  (make-posn 32 96)
-  (make-posn 96 96))
- (rectangle 128 128 "solid" "blue"))
-              
+;data;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define *map-zero* '(
+                     (1 2 3 4)
+                     (2 3 4 1)
+                     (3 4 1 2)
+                     (4 1 2 3)
+                     ))
+
+
+(define *cross-p* '(t1 v1 v1 #f #f #f v1 v1 #f v1 #f t1 v1 t1 v1 #f #f #f #f #f #f #f #f #f #f)) ;25
+
+(define *roads-p* '(1 1 #f #f #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f 2
+                     #f #f #f #f #f 2 #f #f #f #f #f #f #f #f 1)) ;40
+
+(define (x40 x y)
+  (make-posn (+ (* x 40) (* (- x 1) 40))
+             (+ (* y 40) (* (- y 1) 40))))
+
+
+
+
+;補助関数;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (tate&yoko x)
+  (cond ((<= x 4) 'yoko) 
+        ((<= 5 x 9) 'tate) ;(and (>= x 5) (<= x 9)) 'tate) 
+        ((<= 10 x 13) 'yoko) ; and (>= x 10) (<= x 13)) 'yoko)
+        ((<= 14 x 18) 'tate) ;(and (>= x 14) (<= x 18)) 'tate)
+        ((<= 19 x 22) 'yoko) ;(and (>= x 19) (<= x 22)) 'yoko)
+        ((<= 23 x 27) 'tate) ;(and (>= x 23) (<= x 27)) 'tate)
+        ((<= 28 x 31) 'yoko) ;(>= x 28) (<= x 31)) 'yoko)
+        ((<= 32 x 36) 'tate) ; (>= x 32) (<= x 36)) 'tate)
+        (else 'yoko)))
+
+(define (tate&yokoX x)
+  (cond ((<= x 4) (+ 50 (* 80 (- x 1))))
+        ((<= 5 x 9) (+ 34 (* 80 (- x 5))))
+        ((<= 10 x 13) (+ 50 (* 80 (- x 10))))
+        ((<= 14 x 18) (+ 34 (* 80 (- x 14))))
+        ((<= 19 x 22) (+ 50 (* 80 (- x 19))))
+        ((<= 23 x 27) (+ 34 (* 80 (- x 23))))
+        ((<= 28 x 31) (+ 50 (* 80 (- x 28))))
+        ((<= 32 x 36)(+ 34 (* 80 (- x 32))))
+        (else (+ 50 (* 80 (- x 37))))))
+
+(define (tate&yokoY x)
+    (cond ((<= x 4) 36)
+        ((<= 5 x 9)  50)
+        ((<= 10 x 13) 116)
+        ((<= 14 x 18) 130)
+        ((<= 19 x 22) 196)
+        ((<= 23 x 27)  210)
+        ((<= 28 x 31) 276)
+        ((<= 32 x 36) 290)
+        (else 356)))
+  
+
+
+;map配置関係;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (place-map)
+(place-images/align
+ (map (lambda (x) (square 80 "solid"
+                         (case x
+                           ((1) "red")
+                           ((2) "white")
+                           ((3) "green")
+                           ((4) "yellow")
+                           (else "blue")))) (flatten *map-zero*))
+  (flatten (for/list ((i (iota 4 1 1)))
+             (for/list ((j (iota 4 1 1)))
+    (x40 i j)))) "left" "top"
+ (rectangle 400 400 "solid" "blue")))
+
+
+
+
+(define (place-road)
+  (place-images/align
+    (let loop ((lst *roads-p*) (count 1) (acc '()))
+      (if (null? lst)
+          (reverse acc)
+          (loop (cdr lst) (+ count 1) (if (car lst) (cons (case (tate&yoko count)
+                                                      ((yoko) (rectangle 60 10 "solid" (case (car lst)
+                                                                                         ((1) "black")
+                                                                                         ((2) "blue"))))
+                                                      ((tate) (rectangle 10 60 "solid" (case (car lst)
+                                                                                         ((1) "black")
+                                                                                         ((2) "blue"))))) acc)
+                                          acc))))
+    (let loopB ((lst *roads-p*) (count 1) (acc '()))
+      (if (null? lst)
+          (reverse acc)
+          (loopB (cdr lst) (+ count 1)
+                 (if (car lst)
+                      (cons (make-posn (tate&yokoX count) (tate&yokoY count)) acc)
+                       acc))))                                                         
+   "left" "top" (place-map)))
+
+
+(define (place-town)
+  (place-images/align
+   (let loopA ((lst *cross-p*) (acc '()))
+     (if (null? lst) (reverse acc)
+         (loopA (cdr lst) (if (car lst)
+                              (cons (case (car lst)
+                                      ((t1) (circle 10 "solid" "black"))
+                                      ((v1) (triangle 20 "solid" "black"))
+                                      (else (circle 10 "solid" "blue"))) acc)
+                              acc))))
+   
+   (let loopB ((lst *cross-p*) (count 1) (acc '()))
+     (if (null? lst) (reverse acc)
+         (loopB (cdr lst) (+ count 1) (if (car lst)
+                                          (cons (make-posn (+ 30 (* 80 (cond
+                                                                 ((= (remainder count 5) 0) 4) 
+                                                                 (else (- (remainder count 5) 1)))))
+                                                           (+ 28 (* 80 (cond
+                                                                 ((= (remainder count 5) 0) (- (quotient count 5) 1))
+                                                                 (else (quotient count 5))))))
+                                                              acc) acc))))
+ "left" "top" (place-road)))
+
+
+(define number-list '(1 2 3 4 5 5 6 6 7 8 8 9 9 10 11 12))
+(define number-list-S (shuffle number-list))
+
+(define (place-number)
+  (place-images/align  
+   (map (lambda (x) (text (number->string x) 25 "black")) number-list-S)
+   (let loopB ((lst number-list-S) (count 1) (acc '()))
+     (if (null? lst) (reverse acc)
+         (loopB (cdr lst) (+ count 1) 
+                                (cons (make-posn (+ 70 (* 80 (cond
+                                                       ((= (remainder count 4) 0) 3) 
+                                                       (else (- (remainder count 4) 1)))))
+                                                 (+ 70 (* 80 (cond
+                                                       ((= (remainder count 4) 0) (- (quotient count 4) 1))
+                                                       (else (quotient count 4))))))
+                                                       acc)))) 
+   "left" "top" (place-town)))
+
+
+
+
+(place-number)
+
+;隣り合う交点には町村を設置できない
+
+
+(define *cross-p2* '(v1 v1 #f #f #f #f t1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;25
+(define (not-tonari? cross-map c-point)
+  (let ((c-num (- c-point 1)))
+  (if (and
+           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (- c-num 1)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (- c-num 5)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (+ c-num 1)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (+ c-num 5))))
+      #f #t)))
+
+(not-tonari? *cross-p2* 2)
+
+
+;道が伸びてる交点にしか町村を設置できない
+
+(define *roads-p2* '(1 1 #f #f #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f 2
+                     #f #f #f #f #f 2 #f #f #f #f #f #f #f #f 1)) ;40
+
+;p2                  r #f 1 2 6                                       1-5
+;point7の場合　road6,10,11,15  P8 R7,11,12,16     6-10
+;point12        r15,19,20,24      P13 r16,20,21,25  11-15
+;point17       r24 28 29 33      P18 r25 29 30 34   16-20
+;p22             r33 37 38 42                                     21-25
+
+(define (road-kiteru? road-map player c-point)
+  (let ((c-num (- c-point 1)))
+    (if (and
+           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (- c-num 1)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (- c-num 5)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (+ c-num 1)))
+           (with-handlers ((exn:fail? (const #t))) (list-ref road-map (+ c-num 5))))
+        )))
+
+    (cond ((<= x 5) 0)
+        ((<= 6 x 10)  50)
+        ((<= 10 x 13) 116)
+        ((<= 14 x 18) 130)
+        ((<= 19 x 22) 196)
+        ((<= 23 x 27)  210)
+        ((<= 28 x 31) 276)
+        ((<= 32 x 36) 290)
+        (else 356)))
+
+
+
+
 
 
   

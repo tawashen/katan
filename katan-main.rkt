@@ -20,7 +20,7 @@
                      ))
 
 
-(define *cross-p* '(t1 v1 v1 #f #f #f v1 v1 #f v1 #f t1 v1 t1 v1 #f #f #f #f #f #f #f #f #f #f)) ;25
+(define *cross-p* '(#f #f #f #f #f #f v1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;25
 
 (define *roads-p* '(1 1 #f #f #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f 2
                      #f #f #f #f #f 2 #f #f #f #f #f #f #f #f 1)) ;40
@@ -47,24 +47,24 @@
 
 (define (tate&yokoX x)
   (cond ((<= x 4) (+ 50 (* 80 (- x 1))))
-        ((and (>= x 5) (<= x 9)) (+ 34 (* 80 (- x 5))))
-        ((and (>= x 10) (<= x 13)) (+ 50 (* 80 (- x 10))))
-        ((and (>= x 14) (<= x 18)) (+ 34 (* 80 (- x 14))))
-        ((and (>= x 19) (<= x 22)) (+ 50 (* 80 (- x 19))))
-        ((and (>= x 23) (<= x 27)) (+ 34 (* 80 (- x 23))))
-        ((and (>= x 28) (<= x 31)) (+ 50 (* 80 (- x 28))))
-        ((and (>= x 32) (<= x 36)) (+ 34 (* 80 (- x 32))))
+        ((<= 5 x 9) (+ 34 (* 80 (- x 5))))
+        ((<= 10 x 13) (+ 50 (* 80 (- x 10))))
+        ((<= 14 x 18) (+ 34 (* 80 (- x 14))))
+        ((<= 19 x 22) (+ 50 (* 80 (- x 19))))
+        ((<= 23 x 27) (+ 34 (* 80 (- x 23))))
+        ((<= 28 x 31) (+ 50 (* 80 (- x 28))))
+        ((<= 32 x 36)(+ 34 (* 80 (- x 32))))
         (else (+ 50 (* 80 (- x 37))))))
 
 (define (tate&yokoY x)
     (cond ((<= x 4) 36)
-        ((and (>= x 5) (<= x 9)) 50)
-        ((and (>= x 10) (<= x 13)) 116)
-        ((and (>= x 14) (<= x 18)) 130)
-        ((and (>= x 19) (<= x 22)) 196)
-        ((and (>= x 23) (<= x 27)) 210)
-        ((and (>= x 28) (<= x 31)) 276)
-        ((and (>= x 32) (<= x 36)) 290)
+        ((<= 5 x 9)  50)
+        ((<= 10 x 13) 116)
+        ((<= 14 x 18) 130)
+        ((<= 19 x 22) 196)
+        ((<= 23 x 27)  210)
+        ((<= 28 x 31) 276)
+        ((<= 32 x 36) 290)
         (else 356)))
   
 
@@ -155,23 +155,29 @@
 
 
 
-(place-number)
+;(place-number)
 
 ;隣り合う交点には町村を設置できない
 
 
-(define *cross-p2* '(v1 v1 #f #f #f #f t1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;25
-(define (not-tonari? cross-map c-point)
+(define *cross-p2* '(#f #f #f #f v1 #f t1 #f #f #f #f #f #f #f v1 #f t1 #f #f #f #f #f #f #f #f)) ;25
+(define (tonari? cross-map c-point) ;隣に町村がある？
   (let ((c-num (- c-point 1)))
-  (if (and
-           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (- c-num 1)))
-           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (- c-num 5)))
-           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (+ c-num 1)))
-           (with-handlers ((exn:fail? (const #t))) (list-ref cross-map (+ c-num 5))))
-      #f #t)))
+  (if (or
+           (with-handlers ((exn:fail? (const #f))) (and (list-ref cross-map (- c-num 1)) (not (= 0 (remainder c-num 5)))))
+           (with-handlers ((exn:fail? (const #f))) (and (list-ref cross-map (- c-num 5)) (not (<= c-point 4)))) 
+           (with-handlers ((exn:fail? (const #f))) (and (list-ref cross-map (+ c-num 1)) (not (= 0 (remainder c-point 5)))))
+           (with-handlers ((exn:fail? (const #f))) (and (list-ref cross-map (+ c-num 5)) (not (>= c-point 21)))))
+      #t #f)))
 
-(not-tonari? *cross-p2* 2)
+(tonari? *cross-p2* 16)
 
+
+
+
+
+;(let ((c-num 5))
+ ; (and (list-ref *cross-p2* 5) (not (= 5 5))))
 
 ;道が伸びてる交点にしか町村を設置できない
 
@@ -183,6 +189,7 @@
 ;point12        r15,19,20,24      P13 r16,20,21,25  11-15
 ;point17       r24 28 29 33      P18 r25 29 30 34   16-20
 ;p22             r33 37 38 42                                     21-25
+
 #|
 (define (road-kiteru? road-map player c-point)
   (let ((c-num (- c-point 1)))
@@ -193,8 +200,17 @@
            (with-handlers ((exn:fail? (const #t))) (list-ref road-map (+ c-num 5))))
         )))
 
-|#
 
+    (cond ((<= x 5) 0)
+        ((<= 6 x 10)  50)
+        ((<= 10 x 13) 116)
+        ((<= 14 x 18) 130)
+        ((<= 19 x 22) 196)
+        ((<= 23 x 27)  210)
+        ((<= 28 x 31) 276)
+        ((<= 32 x 36) 290)
+        (else 356)))
+|#
 
 
 
