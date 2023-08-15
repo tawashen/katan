@@ -8,7 +8,7 @@
 
 (struct WORLD (PLAYERS MAP PHASE TURN))
 (struct PLAYER (NAME COLOR CARDS ROAD VILLAGE TOWN))
-(struct CARD (WOOD IRON SHEEP BLOCK))
+(struct CARD (WOOD BLOCK IRON SHEEP))
 
 
 ;data;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -82,7 +82,7 @@
   (flatten (for/list ((i (iota 4 1 1)))
              (for/list ((j (iota 4 1 1)))
     (x40 i j)))) "left" "top"
- (rectangle 400 400 "solid" "blue")))
+ (rectangle 800 400 "solid" "blue")))
 
 
 
@@ -133,7 +133,6 @@
                                                               acc) acc))))
  "left" "top" (place-road)))
 
-
 (define number-list '(1 2 3 4 5 5 6 6 7 8 8 9 9 10 11 12))
 (define number-list-S (shuffle number-list))
 
@@ -155,13 +154,23 @@
 
 
 
-(place-number)
+(define test-cards (CARD 1 2 3 4))
+(define (place-status)
+  (match-let (((CARD WOOD BLOCK IRON SHEEP) test-cards))
+    (place-image/align
+  (text (format "PLAYER ~a　木：~a 土：~a 鉄：~a 羊：~a~%" 1 WOOD BLOCK IRON SHEEP) 15 "black")
+    420 40 "left" "top"
+    (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number)))))
+
+(place-status)
+
+;町村が置けるかチェック関数;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;隣り合う交点には町村を設置できない
 
 
 (define *cross-p2* '(#f #f #f #f v1 #f t1 #f #f #f #f #f #f #f v1 #f t1 #f #f #f #f #f #f #f #f)) ;25
-(define (tonari-T? cross-map c-point) ;隣に町村がある？
+(define (tonari-VT? cross-map c-point) ;隣に町村がある？
   (let ((c-num (- c-point 1)))
   (if (or
            (with-handlers ((exn:fail? (const #f))) (and (list-ref cross-map (- c-num 1)) (not (= 0 (remainder c-num 5)))))
@@ -170,16 +179,7 @@
            (with-handlers ((exn:fail? (const #f))) (and (list-ref cross-map (+ c-num 5)) (not (>= c-point 21)))))
       #t #f)))
 
-;(tonari-T? *cross-p2* 16)
-
-
-
-
-
-
-
-;(let ((c-num 5))
- ; (and (list-ref *cross-p2* 5) (not (= 5 5))))
+;(tonari-VT? *cross-p2* 16)
 
 ;道が伸びてる交点にしか町村を設置できない
 
@@ -211,4 +211,14 @@
                                                         (= player (list-ref road-map (+ (+ c-num 4) gyou-num)))))) ;down
       #t #f)))
 
-(road-kiteru? *roads-p* 0 21)
+(road-kiteru? *roads-p* 2 21)
+
+(define (can-build? cross-map road-map player c-point) ;playerが町村を作れる場所 list->list
+  (if (and (not (tonari-VT? cross-map c-point)) (road-kiteru? road-map player c-point)) #t #f))
+
+(map (lambda (x) (can-build? *cross-p* *roads-p* 1 x)) (iota 25 1 1))
+
+
+
+
+;main
