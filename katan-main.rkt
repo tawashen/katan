@@ -23,7 +23,7 @@
 (define *cross-p* '(#f #f #f #f #f #f v1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;25
 
 (define *roads-p* '(1 1 #f #f 1 #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f
-                     #f #f #f #f #f #f #f #f #f #f 1 1 #f #f #f)) ;40
+                     #f #f #f #f #f #f #f #f #f #f 1 2 #f #f #f)) ;40
 
 (define (x40 x y)
   (make-posn (+ (* x 40) (* (- x 1) 40))
@@ -198,13 +198,17 @@
         (c-num (- c-point 1))) ;list-ref用に変換したC-point
   (if (or
            (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (+ (- c-num 1) gyou-num));
-                                                        (not (= 0 (remainder c-num 5))))) ;left
+                                                        (not (= 0 (remainder c-num 5)))
+                                                        (= player (list-ref road-map (+ (- c-num 1) gyou-num))))) ;left
            (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (+ (- c-num 5) gyou-num))
-                                                        (not (<= c-point 4)))) ;up
+                                                        (not (<= c-point 4))
+                                                        (= player (list-ref road-map (+ (- c-num 5) gyou-num))))) ;up
            (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (+ c-num gyou-num))
-                                                        (not (= 0 (remainder c-point 5))))) ;right
+                                                        (not (= 0 (remainder c-point 5)))
+                                                        (= player (list-ref road-map (+ c-num gyou-num))))) ;right
            (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (+ (+ c-num 4) gyou-num))
-                                                        (not (>= c-point 21))))) ;down
+                                                        (not (>= c-point 21))
+                                                        (= player (list-ref road-map (+ (+ c-num 4) gyou-num)))))) ;down
       #t #f)))
 
 (road-kiteru? *roads-p* 0 21)
