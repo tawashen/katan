@@ -211,7 +211,7 @@
                                                         (= player (list-ref road-map (+ (+ c-num 4) gyou-num)))))) ;down
       #t #f)))
 
-(road-kiteru? *roads-p* 2 21)
+;(road-kiteru? *roads-p* 2 21)
 
 (define (can-build? cross-map road-map player c-point) ;playerが町村を作れる場所 list->list
   (if (and (not (tonari-VT? cross-map c-point)) (road-kiteru? road-map player c-point)) #t #f))
