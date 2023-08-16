@@ -7,7 +7,6 @@
 (require racket/match)
 
 (struct WORLD (PLAYERS MAP PHASE TURN))
-(struct PLAYER (NAME COLOR CARDS ROAD VILLAGE TOWN))
 (struct CARD (WOOD BLOCK IRON SHEEP))
 
 
@@ -152,15 +151,32 @@
    "left" "top" (place-town)))
 
 
-
-
+(struct PLAYER (NO COLOR SCORE CARDS))
 (define test-cards (CARD 1 2 3 4))
+(define PLAYER-1 (PLAYER 1 "black" 0 test-cards))
+
+(define (max-road-length roads player)
+  
+
 (define (place-status)
-  (match-let (((CARD WOOD BLOCK IRON SHEEP) test-cards))
-    (place-image/align
-  (text (format "PLAYER ~a　木：~a 土：~a 鉄：~a 羊：~a~%" 1 WOOD BLOCK IRON SHEEP) 15 "black")
-    420 40 "left" "top"
-    (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number)))))
+  (match-let (((PLAYER NO COLOR SCORE CARDS) PLAYER-1))
+  (match-let (((CARD WOOD BLOCK IRON SHEEP) CARDS))
+    (place-images/align
+     (list
+  (text (format "PLAYER ~a~%" NO) 15 COLOR)
+  (text (format "CARDS 木：~a 土：~a 鉄：~a 羊：~a~%" WOOD BLOCK IRON SHEEP) 15 COLOR)
+  (text (format "SCORE ~a~%" SCORE) 15 COLOR)
+  (text (format "MAX-ROAD-LENGTH ~a~%"  15 COLOR
+  )
+  
+    (list
+     (make-posn 420 40)
+     (make-posn 450 60)
+     (make-posn 450 80)
+     (make-posn 450 100)
+     )
+     "left" "top"
+    (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number))))))
 
 (place-status)
 
