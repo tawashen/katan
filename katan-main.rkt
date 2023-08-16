@@ -155,7 +155,6 @@
 (define test-cards (CARD 1 2 3 4))
 (define PLAYER-1 (PLAYER 1 "black" 0 test-cards))
 
-(define (max-road-length roads player)
   
 
 (define (place-status)
@@ -177,8 +176,9 @@
      )
      "left" "top"
     (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number))))))
+    ))
 
-(place-status)
+;(place-status)
 
 ;町村が置けるかチェック関数;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -232,9 +232,12 @@
 (define (can-build? cross-map road-map player c-point) ;playerが町村を作れる場所 list->list
   (if (and (not (tonari-VT? cross-map c-point)) (road-kiteru? road-map player c-point)) #t #f))
 
-(map (lambda (x) (can-build? *cross-p* *roads-p* 1 x)) (iota 25 1 1))
+:(map (lambda (x) (can-build? *cross-p* *roads-p* 1 x)) (iota 25 1 1))
 
 
+ 
+(define (max-road-length roads player)
+  
 
 
 ;main
