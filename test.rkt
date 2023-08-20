@@ -23,13 +23,15 @@
 (define check-funcs `(,left ,up ,right ,down))
                
 
-(define (hazi? roads c-point)
+(define (road-num roads c-point)
   (let ((gyou-num (* 4 (quotient (- c-point 1) 5))))
     (let loop ((funcs check-funcs) (counter 0))
-      (if (null? funcs) (cond ((= 1 counter) #t)
-                                          (else #f))
+      (if (null? funcs) counter
           (loop (cdr funcs) (if ((car funcs) roads c-point)
                                 (+ counter 1) counter))))))
+
+(define (hazi? roads c-point)
+  (if (= 1 (road-num roads c-point)) #t #f))
 
 ; (filter (lambda (x) (hazi? *roads-p* x)) (iota 25 1 1))
 
@@ -43,11 +45,13 @@
 
 (dokohe? *roads-p* 1)
 
-(define (tadoru roads c-point point-list bunki max)
-  (if (and (null? bunki) (car (dokohe? roads c-point)
 
-(let loop ((roads *roads-p*) (c-point 1) (point-list '(1)) (bunki '()) (max 0))
-  (if (and (null? bunki) (dokohe? roads 
+(define (tadoru roads c-point point-list bunki max) ;bunkiにポイントと向かった先、その時点のpoint-list '(bunki-point yukisaki point-list) 
+  (cond  ((and (null? bunki) (not (null? point-list)) (hazi? roads c-point)) max) ;終了条件
+         ((and bunki (not (null? point-list)) (hazi? roads c-point)) (tadoru roads (car bunki) 
+  
+         
+                              
 
 
 (define (max-length roads cross-p)
@@ -55,3 +59,4 @@
   (let loop ((roads roads) (hazi-points hazi-points) (points '()) (max #f))
     (if (null? hazi-points) length
         (
+|#
