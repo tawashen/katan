@@ -1,10 +1,10 @@
 #lang racket
 
-(require srfi/1)
+;(require srfi/1)
 (require 2htdp/universe 2htdp/image lang/posn)
 
 
-(define *roads-p* '(1 1 #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 #f #f #f 1 #f #f #f #f
+(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 #f #f 1 #f #f #f #f
                      #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;
 
 
@@ -37,15 +37,38 @@
 
 
 (define (dokohe? roads c-point)
+  (flatten (for/list ((func check-funcs)
+             (change `(,(- c-point 1) ,(- c-point 5) ,(+ c-point 1) ,(+ c-point 5))))
+    (if (func roads c-point) change '()))))
+
+#|
+  (if (null? check-funcs) 
   (cond ((left roads c-point) (- c-point 1))
         ((up roads c-point) (- c-point 5))
         ((right roads c-point) (+ c-point 1))
         ((down roads c-point) (+ c-point 5))))
+|#
 
 
-(dokohe? *roads-p* 1)
+
+(define (ippon-length roads c-point)
+  (let loop ((c-point c-point) (point-list `(,c-point)) (pre-p 0) (length 0))
+    (cond ((and (not (= length 0)) (hazi? roads c-point)) (begin (display length) (display point-list)))
+          (else
+           (let ((num (remove  pre-p  ;(flatten (car point-list)) 5 4 -> 4 5 ->4
+                  (dokohe? roads c-point)))) ;4 10 -> 10 num=10
+             (loop (car num) ;10  10 5 4   2
+                      (cons (car num)  point-list) c-point (+ length 1))))))) ;pre-p=4
+
+(ippon-length *roads-p* 1)
 
 
+;(remove 4 '(4 10))
+(remove 1 (dokohe? *roads-p* 2))
+
+
+
+#|
 (define (tadoru roads c-point point-list bunki max) ;bunkiにポイントと向かった先、その時点のpoint-list '(bunki-point yukisaki point-list) 
   (cond  ((and (null? bunki) (not (null? point-list)) (hazi? roads c-point)) max) ;終了条件
          ((and bunki (not (null? point-list)) (hazi? roads c-point)) (tadoru roads (car bunki) 
