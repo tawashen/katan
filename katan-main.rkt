@@ -27,7 +27,7 @@
 ;(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 #f #f #f 1 #f #f #f #f
 ;                     #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f))
 
-(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 #f
+(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 #f
                      #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;
 
 (define (x40 x y)

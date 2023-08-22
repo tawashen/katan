@@ -4,7 +4,7 @@
 (require 2htdp/universe 2htdp/image lang/posn)
 
 
-(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 #f
+(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 #f
                      #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;
 
 
@@ -41,24 +41,20 @@
              (change `(,(- c-point 1) ,(- c-point 5) ,(+ c-point 1) ,(+ c-point 5))))
     (if (func roads c-point) change '()))))
 
-#|
-  (if (null? check-funcs) 
-  (cond ((left roads c-point) (- c-point 1))
-        ((up roads c-point) (- c-point 5))
-        ((right roads c-point) (+ c-point 1))
-        ((down roads c-point) (+ c-point 5))))
-|#
-
 
 
 (define (ippon-length roads c-point)
-  (let loop ((c-point c-point) (point-list `(,c-point)) (pre-p 0) (length 0))
-    (cond ((and (not (= length 0)) (hazi? roads c-point)) (begin (display length) (display point-list)))
+  (let loop ((c-point c-point) (point-list `(,c-point)) (pre-p 0) (bunki '()) (max #f))
+    (cond ((and (not (= length 0)) (hazi? roads c-point) (null? bunki)) (display (reverse point-list)))
+          ((member c-point point-list) (display (reverse point-list)))
           (else
-           (let ((num (remove  pre-p (dokohe? roads c-point))))
-             (loop (car num) (cons (car num)  point-list) c-point (+ length 1))))))) 
+           (let ((num (remove pre-p (dokohe? roads c-point))))
+             (cond ((>= (length num) 2) (loop (car num) (cons (car num) point-list) c-point (cons 
+             (loop (car num) (cons (car num)  point-list) c-point bunki max)))))) 
 
 (ippon-length *roads-p* 1)
+
+;(define (
 
 
 
