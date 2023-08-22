@@ -4,7 +4,7 @@
 (require 2htdp/universe 2htdp/image lang/posn)
 
 
-(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 #f #f 1 #f #f #f #f
+(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 #f
                      #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;
 
 
@@ -55,16 +55,11 @@
   (let loop ((c-point c-point) (point-list `(,c-point)) (pre-p 0) (length 0))
     (cond ((and (not (= length 0)) (hazi? roads c-point)) (begin (display length) (display point-list)))
           (else
-           (let ((num (remove  pre-p  ;(flatten (car point-list)) 5 4 -> 4 5 ->4
-                  (dokohe? roads c-point)))) ;4 10 -> 10 num=10
-             (loop (car num) ;10  10 5 4   2
-                      (cons (car num)  point-list) c-point (+ length 1))))))) ;pre-p=4
+           (let ((num (remove  pre-p (dokohe? roads c-point))))
+             (loop (car num) (cons (car num)  point-list) c-point (+ length 1))))))) 
 
 (ippon-length *roads-p* 1)
 
-
-;(remove 4 '(4 10))
-(remove 1 (dokohe? *roads-p* 2))
 
 
 

@@ -24,8 +24,11 @@
 ;(define *roads-p* '(1 1 #f #f 1 #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f
 ;                     #f #f #f #f #f #f #f #f #f #f 1 2 #f #f #f)) ;40
 
-(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 #f #f #f 1 #f #f #f #f
-                     #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f))
+;(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 #f #f #f 1 #f #f #f #f
+;                     #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f))
+
+(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 #f
+                     #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;
 
 (define (x40 x y)
   (make-posn (+ (* x 40) (* (- x 1) 40))
