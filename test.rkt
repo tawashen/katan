@@ -44,13 +44,16 @@
 
 
 (define (ippon-length roads c-point)
-  (let loop ((c-point c-point) (point-list `(,c-point)) (pre-p 0) (bunki '()) (max #f))
-    (cond ((and (not (= length 0)) (hazi? roads c-point) (null? bunki)) (display (reverse point-list)))
-          ((member c-point point-list) (display (reverse point-list)))
+  (let loop ((c-point-d c-point) (point-list `(,c-point)) (pre-p #f) (max '()))
+    (cond ((and (not (null? max)) (hazi? roads c-point-d)) (display (reverse max)));終了
+          ((member c-point-d point-list) (display (reverse max)));円環パターン終了
           (else
-           (let ((num (remove pre-p (dokohe? roads c-point))))
-             (cond ((>= (length num) 2) (loop (car num) (cons (car num) point-list) c-point (cons 
-             (loop (car num) (cons (car num)  point-list) c-point bunki max)))))) 
+           (let ((num (remove pre-p (dokohe? roads c-point-d))))
+             (cond ((>= (length num) 2)
+                    (for/list ((num num))
+                      (loop num (cons num point-list) c-point-d (if (< (length max) (length point-list)) point-list max))))
+                   (else (loop (car num) (cons (car num)  point-list) c-point-d (if (< (length max) (length point-list)) point-list max)))))))))
+
 
 (ippon-length *roads-p* 1)
 
