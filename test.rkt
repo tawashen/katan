@@ -4,10 +4,10 @@
 (require 2htdp/universe 2htdp/image lang/posn)
 
 
-;(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 #f
- ;                    #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;
+(define *roads-p1* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 #f
+                    #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;
 
-(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 1
+(define *roads-p2* '(1 #f #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 1
                      #f #f #f #f #f #f #f #f 1 #f #f #f #f #f #f)) 
 
 
@@ -47,21 +47,25 @@
 
 
 (define (ippon-length roads c-point)
-  (let loop ((c-point-d c-point) (point-list `(,c-point)) (pre-p #f) (max '()))
-    (cond ((and (not (null? max)) (hazi? roads c-point-d)) (display (reverse point-list)));終了
+  (let loop ((c-point-d c-point) (point-list `(,c-point)) (pre-p #f))
+    (cond ((and (not (= c-point (car point-list))) (hazi? roads c-point-d)) (display (reverse point-list)));終了
         ;  ((member c-point-d point-list) (display (reverse point-list)));円環パターン終了
           (else
            (let ((num (remove pre-p (dokohe? roads c-point-d))))
              (cond ((>= (length num) 2)
                     (for/list ((num num))
-                      (loop num (cons num point-list) c-point-d
-                            (if (< (length max) (length point-list)) point-list max))))
+                      (loop num (cons num point-list) c-point-d)))
+                          ;  (if (< (length max) (length point-list))
+                          ;  point-list)))
+                            ;max))))
                    (else
-                    (loop (car num) (cons (car num)  point-list) c-point-d
-                          (if (< (length max) (length point-list)) point-list max)))))))))
+                   (loop (car num) (cons (car num)  point-list) c-point-d))))))))
+                          ;(if (< (length max) (length point-list))
+                        ; point-list))))))))
+                         ;max)))))))))
 
 
-(ippon-length *roads-p* 1)
+(ippon-length *roads-p1* 1)
 
 ;(define (
 
