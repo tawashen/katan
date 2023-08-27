@@ -21,8 +21,14 @@
 
 (define *cross-p* '(#f #f #f #f #f #f v1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;25
 
-(define *roads-p* '(1 1 #f #f 1 #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f
-                     #f #f #f #f #f #f #f #f #f #f 1 2 #f #f #f)) ;40
+;(define *roads-p* '(1 1 #f #f 1 #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f
+;                     #f #f #f #f #f #f #f #f #f #f 1 2 #f #f #f)) ;40
+
+;(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 #f #f #f 1 #f #f #f #f
+;                     #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f))
+
+(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 1
+                     #f #f #f #f #f #f #f #f 1 #f #f #f #f #f #f)) ;
 
 (define (x40 x y)
   (make-posn (+ (* x 40) (* (- x 1) 40))
@@ -156,7 +162,7 @@
 (define PLAYER-1 (PLAYER 1 "black" 0 test-cards))
 
   
-
+#|
 (define (place-status)
   (match-let (((PLAYER NO COLOR SCORE CARDS) PLAYER-1))
   (match-let (((CARD WOOD BLOCK IRON SHEEP) CARDS))
@@ -177,8 +183,8 @@
      "left" "top"
     (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number))))))
     ))
-
-;(place-status)
+|#
+(place-number)
 
 ;町村が置けるかチェック関数;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -232,11 +238,11 @@
 (define (can-build? cross-map road-map player c-point) ;playerが町村を作れる場所 list->list
   (if (and (not (tonari-VT? cross-map c-point)) (road-kiteru? road-map player c-point)) #t #f))
 
-:(map (lambda (x) (can-build? *cross-p* *roads-p* 1 x)) (iota 25 1 1))
+;(map (lambda (x) (can-build? *cross-p* *roads-p* 1 x)) (iota 25 1 1))
 
 
  
-(define (max-road-length roads player)
+;(define (max-road-length roads player)
   
 
 

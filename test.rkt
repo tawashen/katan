@@ -137,4 +137,11 @@
         ((= (car lst) c-point) (loop (cdr lst) (if (null? temp) acc (cons (reverse temp) acc)) (list c-point)))
         (else (loop (cdr lst) acc (cons (car lst) temp))))))
 
-(devide-numbers test3 1)
+;(devide-numbers test3 1)
+
+
+(map append test3)
+
+
+
+
