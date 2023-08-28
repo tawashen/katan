@@ -9,6 +9,10 @@
 (struct WORLD (PLAYERS MAP PHASE TURN))
 (struct CARD (WOOD BLOCK IRON SHEEP))
 
+(struct PLAYER (NO COLOR SCORE CARDS))
+(define test-cards (CARD 1 2 3 4))
+(define PLAYER-1 (PLAYER 1 "black" 0 test-cards))
+
 
 ;data;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define *map-zero* '(
@@ -27,7 +31,7 @@
 ;(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 #f #f #f 1 #f #f #f #f
 ;                     #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f))
 
-(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 1
+(define *roads-p* '(1 2 #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 1
                      #f #f #f #f #f #f #f #f 1 #f #f #f #f #f #f)) ;
 
 (define (x40 x y)
@@ -74,17 +78,25 @@
 
 
 ;上下左右のポイントへ道が伸びているかをチェックする述語をそれぞれ別のクロージャで
-(define left (lambda (road-map c-point)
-               (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (- (+ (- c-point 1) (* 4 (quotient (- c-point 1) 5))) 1));
+(define left (lambda (road-map c-point color)
+               (with-handlers ((exn:fail? (const #f))) (and
+                                                        (= color (list-ref road-map (- (+ (- c-point 1)
+                                                                   (* 4 (quotient (- c-point 1) 5))) 1)))
                                                         (not (member c-point '(1 6 11 16 20))))))) ;
-(define up (lambda (road-map c-point)
-              (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (- (+ (- c-point 5) (* 4 (quotient (- c-point 1) 5))) 1))
+(define up (lambda (road-map c-point color)
+              (with-handlers ((exn:fail? (const #f))) (and
+                                                       (= color (list-ref road-map (- (+ (- c-point 5)
+                                                                  (* 4 (quotient (- c-point 1) 5))) 1)))
                                                         (not (member  c-point '(1 2 3 4 5)))))))
-(define right (lambda (road-map c-point)
-                 (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map  (- (+ c-point (* 4 (quotient (- c-point 1) 5))) 1))
+(define right (lambda (road-map c-point color)
+                 (with-handlers ((exn:fail? (const #f))) (and
+                                                          (= color (list-ref road-map  (- (+ c-point
+                                                                     (* 4 (quotient (- c-point 1) 5))) 1)))
                                                         (not (member c-point '(5 10 15 20 25)))))))
-(define down (lambda (road-map c-point)
-               (with-handlers ((exn:fail? (const #f))) (and (list-ref road-map (- (+ (+ c-point 4) (* 4 (quotient (- c-point 1) 5))) 1))
+(define down (lambda (road-map c-point color)
+               (with-handlers ((exn:fail? (const #f))) (and
+                                                        (= color (list-ref road-map (- (+ (+ c-point 4)
+                                                                   (* 4 (quotient (- c-point 1) 5))) 1)))
                                                         (not (member c-point '(21 22 23 24 25)))))))
   
 
@@ -152,49 +164,51 @@
                
 
 ;ポイントから伸びている道の数を返す
-(define (road-num roads c-point)
+(define (road-num roads c-point color)
   (let ((gyou-num (* 4 (quotient (- c-point 1) 5))))
     (let loop ((funcs check-funcs) (counter 0))
       (if (null? funcs) counter
-          (loop (cdr funcs) (if ((car funcs) roads c-point)
+          (loop (cdr funcs) (if ((car funcs) roads c-point color)
                                 (+ counter 1) counter))))))
 
+
+
 ;伸びている道が1本であれば端と判定する
-(define (hazi? roads c-point)
-  (if (= 1 (road-num roads c-point)) #t #f))
+(define (hazi? roads c-point color)
+  (if (= 1 (road-num roads c-point color)) #t #f))
 
 
 
 
 ;ポイントから道が伸びているポイントを返す ->list
-(define (dokohe? roads c-point)
+(define (dokohe? roads c-point color)
   (flatten (for/list ((func check-funcs);上下左右が繋がっているかをチェックするクロージャのリスト
              (change `(,(- c-point 1) ,(- c-point 5) ,(+ c-point 1) ,(+ c-point 5))));↑に対応する座標変化のリスト
-    (if (func roads c-point) change '()))));本体
+    (if (func roads c-point color) change '()))));本体
 
 
 ;ポイントから道路で繋がっているポイントをリストにする
-(define (roads-point-list roads c-point)
-  (let loop ((c-point-d c-point) (point-list `(,c-point)) (pre-p #f))
-    (cond ((and (not (= c-point (car point-list))) (hazi? roads c-point-d)) (reverse point-list));(display (reverse point-list)));終了
+(define (roads-point-list roads c-point color)
+  (let loop ((c-point-d c-point) (point-list `(,c-point)) (pre-p c-point) (color color))
+    (cond ((and (not (= c-point (car point-list))) (hazi? roads c-point-d color)) (reverse point-list));(display (reverse point-list)));終了
         ;  ((member c-point-d point-list) (display (reverse point-list)));円環パターン終了
           (else
-           (let ((num (remove pre-p (dokohe? roads c-point-d))))
+           (let ((num (remove (lambda (x) (= pre-p x)) (dokohe? roads c-point-d color))))
                     (for/list ((num num))
-                      (loop num (cons num point-list) c-point-d)))))))
+                      (loop num (cons num point-list) c-point-d color)))))))
 
 
+;(roads-point-list *roads-p* 1 1)
 
-;(ippon-length *roads-p2* 1)
 
-
+#|
 ;自作探索関数　（（あ））を探すため、動かず 後で動くようにしてみる？
 (define (tansaku lst acc)
   (cond ((number? (car lst)) acc) ;数字まで到達したら終了
         ((and (list? (car lst)) (number? (car (car lst)))) (tansaku (car lst) (cons (car lst) acc)));()に数字の入ってるリストが来たらAccに追加
         ((not (null? (cdr lst))) (tansaku (car lst) acc)  (tansaku (cdr lst) acc));Cdr部がNullでなければCar、Cdrをそれぞれ再帰
         ((and (list? (car lst)) (not (number? (car (car lst))))) (tansaku (car lst) acc))));Carで一段階中に入ってそのリストのCarが数字でなければCarで再帰
-
+|#
 
 ;（（あ））を取り出して単一のリストにする関数
 (define (search-for-numbers lst)
@@ -217,8 +231,12 @@
 
 
 (define (my-longest-road roads c-point color)
+  (apply max (map (lambda (x) (- (length x) 1))
+                     (devide-numbers (search-for-numbers (roads-point-list roads c-point color)) c-point))))
+
+
   
-  
+ 
   
 ;map配置関係;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (place-map)
@@ -303,21 +321,19 @@
    "left" "top" (place-town)))
 
 
-(struct PLAYER (NO COLOR SCORE CARDS))
-(define test-cards (CARD 1 2 3 4))
-(define PLAYER-1 (PLAYER 1 "black" 0 test-cards))
+
 
   
-#|
+
 (define (place-status)
   (match-let (((PLAYER NO COLOR SCORE CARDS) PLAYER-1))
   (match-let (((CARD WOOD BLOCK IRON SHEEP) CARDS))
     (place-images/align
      (list
-  (text (format "PLAYER ~a~%" NO) 15 COLOR)
-  (text (format "CARDS 木:~a 土:~a 鉄:~a 羊:~a~%" WOOD BLOCK IRON SHEEP) 15 COLOR)
-  (text (format "SCORE ~a~%" SCORE) 15 COLOR)
-  (text (format "MAX-ROAD-LENGTH ~a~%"  15 COLOR
+  (text (format "PLAYER~a" NO) 15 COLOR)
+  (text (format "CARDS 木:~a 土:~a 鉄:~a 羊:~a" WOOD BLOCK IRON SHEEP) 15 COLOR)
+  (text (format "SCORE: ~a" SCORE) 15 COLOR)
+  (text (format "MAX-ROAD-LENGTH: ~a" (my-longest-road *roads-p* 1 1)) 15 COLOR)
   )
   
     (list
@@ -328,6 +344,6 @@
      )
      "left" "top"
     (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number))))))
-    ))
-|#
-(place-number)
+    
+
+(place-status)
