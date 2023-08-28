@@ -89,117 +89,6 @@
   
 
 
-;map配置関係;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define (place-map)
-(place-images/align
- (map (lambda (x) (square 80 "solid"
-                         (case x
-                           ((1) "red")
-                           ((2) "white")
-                           ((3) "green")
-                           ((4) "yellow")
-                           (else "blue")))) (flatten *map-zero*))
-  (flatten (for/list ((i (iota 4 1 1)))
-             (for/list ((j (iota 4 1 1)))
-    (x40 i j)))) "left" "top"
- (rectangle 800 400 "solid" "blue")))
-
-
-
-
-(define (place-road)
-  (place-images/align
-    (let loop ((lst *roads-p*) (count 1) (acc '()))
-      (if (null? lst)
-          (reverse acc)
-          (loop (cdr lst) (+ count 1) (if (car lst) (cons (case (tate&yoko count)
-                                                      ((yoko) (rectangle 60 10 "solid" (case (car lst)
-                                                                                         ((1) "black")
-                                                                                         ((2) "blue"))))
-                                                      ((tate) (rectangle 10 60 "solid" (case (car lst)
-                                                                                         ((1) "black")
-                                                                                         ((2) "blue"))))) acc)
-                                          acc))))
-    (let loopB ((lst *roads-p*) (count 1) (acc '()))
-      (if (null? lst)
-          (reverse acc)
-          (loopB (cdr lst) (+ count 1)
-                 (if (car lst)
-                      (cons (make-posn (tate&yokoX count) (tate&yokoY count)) acc)
-                       acc))))                                                         
-   "left" "top" (place-map)))
-
-
-(define (place-town)
-  (place-images/align
-   (let loopA ((lst *cross-p*) (acc '()))
-     (if (null? lst) (reverse acc)
-         (loopA (cdr lst) (if (car lst)
-                              (cons (case (car lst)
-                                      ((t1) (circle 10 "solid" "black"))
-                                      ((v1) (triangle 20 "solid" "black"))
-                                      (else (circle 10 "solid" "blue"))) acc)
-                              acc))))
-   
-   (let loopB ((lst *cross-p*) (count 1) (acc '()))
-     (if (null? lst) (reverse acc)
-         (loopB (cdr lst) (+ count 1) (if (car lst)
-                                          (cons (make-posn (+ 30 (* 80 (cond
-                                                                 ((= (remainder count 5) 0) 4) 
-                                                                 (else (- (remainder count 5) 1)))))
-                                                           (+ 28 (* 80 (cond
-                                                                 ((= (remainder count 5) 0) (- (quotient count 5) 1))
-                                                                 (else (quotient count 5))))))
-                                                              acc) acc))))
- "left" "top" (place-road)))
-
-(define number-list '(1 2 3 4 5 5 6 6 7 8 8 9 9 10 11 12))
-(define number-list-S (shuffle number-list))
-
-(define (place-number)
-  (place-images/align  
-   (map (lambda (x) (text (number->string x) 25 "black")) number-list-S)
-   (let loopB ((lst number-list-S) (count 1) (acc '()))
-     (if (null? lst) (reverse acc)
-         (loopB (cdr lst) (+ count 1) 
-                                (cons (make-posn (+ 70 (* 80 (cond
-                                                       ((= (remainder count 4) 0) 3) 
-                                                       (else (- (remainder count 4) 1)))))
-                                                 (+ 70 (* 80 (cond
-                                                       ((= (remainder count 4) 0) (- (quotient count 4) 1))
-                                                       (else (quotient count 4))))))
-                                                       acc)))) 
-   "left" "top" (place-town)))
-
-
-(struct PLAYER (NO COLOR SCORE CARDS))
-(define test-cards (CARD 1 2 3 4))
-(define PLAYER-1 (PLAYER 1 "black" 0 test-cards))
-
-  
-#|
-(define (place-status)
-  (match-let (((PLAYER NO COLOR SCORE CARDS) PLAYER-1))
-  (match-let (((CARD WOOD BLOCK IRON SHEEP) CARDS))
-    (place-images/align
-     (list
-  (text (format "PLAYER ~a~%" NO) 15 COLOR)
-  (text (format "CARDS 木：~a 土：~a 鉄：~a 羊：~a~%" WOOD BLOCK IRON SHEEP) 15 COLOR)
-  (text (format "SCORE ~a~%" SCORE) 15 COLOR)
-  (text (format "MAX-ROAD-LENGTH ~a~%"  15 COLOR
-  )
-  
-    (list
-     (make-posn 420 40)
-     (make-posn 450 60)
-     (make-posn 450 80)
-     (make-posn 450 100)
-     )
-     "left" "top"
-    (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number))))))
-    ))
-|#
-(place-number)
 
 ;町村が置けるかチェック関数;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -331,10 +220,114 @@
   
   
   
+;map配置関係;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (place-map)
+(place-images/align
+ (map (lambda (x) (square 80 "solid"
+                         (case x
+                           ((1) "red")
+                           ((2) "white")
+                           ((3) "green")
+                           ((4) "yellow")
+                           (else "blue")))) (flatten *map-zero*))
+  (flatten (for/list ((i (iota 4 1 1)))
+             (for/list ((j (iota 4 1 1)))
+    (x40 i j)))) "left" "top"
+ (rectangle 800 400 "solid" "blue")))
 
 
 
 
+(define (place-road)
+  (place-images/align
+    (let loop ((lst *roads-p*) (count 1) (acc '()))
+      (if (null? lst)
+          (reverse acc)
+          (loop (cdr lst) (+ count 1) (if (car lst) (cons (case (tate&yoko count)
+                                                      ((yoko) (rectangle 60 10 "solid" (case (car lst)
+                                                                                         ((1) "black")
+                                                                                         ((2) "blue"))))
+                                                      ((tate) (rectangle 10 60 "solid" (case (car lst)
+                                                                                         ((1) "black")
+                                                                                         ((2) "blue"))))) acc)
+                                          acc))))
+    (let loopB ((lst *roads-p*) (count 1) (acc '()))
+      (if (null? lst)
+          (reverse acc)
+          (loopB (cdr lst) (+ count 1)
+                 (if (car lst)
+                      (cons (make-posn (tate&yokoX count) (tate&yokoY count)) acc)
+                       acc))))                                                         
+   "left" "top" (place-map)))
 
 
-;main
+(define (place-town)
+  (place-images/align
+   (let loopA ((lst *cross-p*) (acc '()))
+     (if (null? lst) (reverse acc)
+         (loopA (cdr lst) (if (car lst)
+                              (cons (case (car lst)
+                                      ((t1) (circle 10 "solid" "black"))
+                                      ((v1) (triangle 20 "solid" "black"))
+                                      (else (circle 10 "solid" "blue"))) acc)
+                              acc))))
+   
+   (let loopB ((lst *cross-p*) (count 1) (acc '()))
+     (if (null? lst) (reverse acc)
+         (loopB (cdr lst) (+ count 1) (if (car lst)
+                                          (cons (make-posn (+ 30 (* 80 (cond
+                                                                 ((= (remainder count 5) 0) 4) 
+                                                                 (else (- (remainder count 5) 1)))))
+                                                           (+ 28 (* 80 (cond
+                                                                 ((= (remainder count 5) 0) (- (quotient count 5) 1))
+                                                                 (else (quotient count 5))))))
+                                                              acc) acc))))
+ "left" "top" (place-road)))
+
+(define number-list '(1 2 3 4 5 5 6 6 7 8 8 9 9 10 11 12))
+(define number-list-S (shuffle number-list))
+
+(define (place-number)
+  (place-images/align  
+   (map (lambda (x) (text (number->string x) 25 "black")) number-list-S)
+   (let loopB ((lst number-list-S) (count 1) (acc '()))
+     (if (null? lst) (reverse acc)
+         (loopB (cdr lst) (+ count 1) 
+                                (cons (make-posn (+ 70 (* 80 (cond
+                                                       ((= (remainder count 4) 0) 3) 
+                                                       (else (- (remainder count 4) 1)))))
+                                                 (+ 70 (* 80 (cond
+                                                       ((= (remainder count 4) 0) (- (quotient count 4) 1))
+                                                       (else (quotient count 4))))))
+                                                       acc)))) 
+   "left" "top" (place-town)))
+
+
+(struct PLAYER (NO COLOR SCORE CARDS))
+(define test-cards (CARD 1 2 3 4))
+(define PLAYER-1 (PLAYER 1 "black" 0 test-cards))
+
+  
+#|
+(define (place-status)
+  (match-let (((PLAYER NO COLOR SCORE CARDS) PLAYER-1))
+  (match-let (((CARD WOOD BLOCK IRON SHEEP) CARDS))
+    (place-images/align
+     (list
+  (text (format "PLAYER ~a~%" NO) 15 COLOR)
+  (text (format "CARDS 木:~a 土:~a 鉄:~a 羊:~a~%" WOOD BLOCK IRON SHEEP) 15 COLOR)
+  (text (format "SCORE ~a~%" SCORE) 15 COLOR)
+  (text (format "MAX-ROAD-LENGTH ~a~%"  15 COLOR
+  )
+  
+    (list
+     (make-posn 420 40)
+     (make-posn 450 60)
+     (make-posn 450 80)
+     (make-posn 450 100)
+     )
+     "left" "top"
+    (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number))))))
+    ))
+|#
+(place-number)
