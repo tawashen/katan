@@ -1,0 +1,8 @@
+#lang racket
+
+(define (setf! board square val)
+  (vector-set! board square val))
+
+(define my-board (make-vector 10)) ; ボードのサイズは10と仮定
+
+(setf! my-board 1 42) ; ボードの1番目の位置に値42を設定

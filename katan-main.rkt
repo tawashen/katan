@@ -172,7 +172,6 @@
                                 (+ counter 1) counter))))))
 
 
-
 ;伸びている道が1本であれば端と判定する
 (define (hazi? roads c-point color)
   (if (= 1 (road-num roads c-point color)) #t #f))
@@ -190,7 +189,7 @@
 ;ポイントから道路で繋がっているポイントをリストにする
 (define (roads-point-list roads c-point color)
   (let loop ((c-point-d c-point) (point-list `(,c-point)) (pre-p c-point) (color color))
-    (cond ((and (not (= c-point (car point-list))) (hazi? roads c-point-d color)) (reverse point-list));(display (reverse point-list)));終了
+    (cond ((and (not (= c-point (car point-list))) (hazi? roads c-point-d color)) (reverse point-list))
         ;  ((member c-point-d point-list) (display (reverse point-list)));円環パターン終了
           (else
            (let ((num (remove (lambda (x) (= pre-p x)) (dokohe? roads c-point-d color))))
@@ -198,7 +197,7 @@
                       (loop num (cons num point-list) c-point-d color)))))))
 
 
-;(roads-point-list *roads-p* 1 1)
+(roads-point-list *roads-p* 1 1)
 
 
 #|
@@ -229,7 +228,7 @@
         ((= (car lst) c-point) (loop (cdr lst) (if (null? temp) acc (cons (reverse temp) acc)) (list c-point)))
         (else (loop (cdr lst) acc (cons (car lst) temp))))))
 
-
+;自分のロンゲストロードの最終的出力
 (define (my-longest-road roads c-point color)
   (apply max (map (lambda (x) (- (length x) 1))
                      (devide-numbers (search-for-numbers (roads-point-list roads c-point color)) c-point))))
@@ -238,7 +237,7 @@
   
  
   
-;map配置関係;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;画面表示関係;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (place-map)
 (place-images/align
  (map (lambda (x) (square 80 "solid"
@@ -252,8 +251,6 @@
              (for/list ((j (iota 4 1 1)))
     (x40 i j)))) "left" "top"
  (rectangle 800 400 "solid" "blue")))
-
-
 
 
 (define (place-road)
@@ -322,9 +319,6 @@
 
 
 
-
-  
-
 (define (place-status)
   (match-let (((PLAYER NO COLOR SCORE CARDS) PLAYER-1))
   (match-let (((CARD WOOD BLOCK IRON SHEEP) CARDS))
@@ -335,7 +329,6 @@
   (text (format "SCORE: ~a" SCORE) 15 COLOR)
   (text (format "MAX-ROAD-LENGTH: ~a" (my-longest-road *roads-p* 1 1)) 15 COLOR)
   )
-  
     (list
      (make-posn 420 40)
      (make-posn 450 60)
@@ -346,4 +339,4 @@
     (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number))))))
     
 
-(place-status)
+;(place-status)
