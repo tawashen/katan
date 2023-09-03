@@ -1,28 +1,49 @@
 #lang racket
 
 
-(define data #(outer outer outer outer outer outer outer outer outer outer outer empty empty
-                     empty empty empty empty empty empty outer outer empty empty empty empty
-                     empty empty empty empty outer outer empty empty empty empty empty empty
-                     empty empty outer outer empty empty empty white black empty empty empty
-                     outer outer empty empty empty black white empty empty empty outer outer
-                     empty empty empty empty empty empty empty empty outer outer empty empty
-                     empty empty empty empty empty empty outer outer empty empty empty empty
-                     empty empty empty empty outer outer outer outer outer outer outer outer
-                     outer outer outer))
 
-(define (format-piece piece)
-  (cond
-    [(eq? piece 'outer) "O"]
-    [(eq? piece 'empty) "."]
-    [(eq? piece 'white) "W"]
-    [(eq? piece 'black) "B"]))
 
-(define (print-chessboard data)
-  (for ([row (in-range 8)])
-    (for ([col (in-range 8)])
-      (display (format "~a " (format-piece (vector-ref data (+ col (* row 8)))))))
-    (newline)))
+(define (valid-p move)
+  (and (integer? move) (<= 11 move 88)
+       (not (or (= 0 (remainder move 10)) (= 9 (remainder move 10))))))
 
-(print-chessboard data)
+      
+(define (legal-p move player board)
+  (and (eqv? (vector-ref board move) empty)
+       (member #t (map (lambda (dir) (would-flip? move player board dir))
+  all-directions))))
+
+(define (make-move move player board)
+  (vector-set! (vector-ref board move) player)
+  (for/list ((dir all-directions))
+          (make-flips move player board dir))
+  board)
+
+(define (make-flips move player board dir)
+  (let ((bracketer (would-flip? move player board dir)))
+    (when bracketer
+      (let loop ((c (+ move dir)) (board board))
+        (if (equal? c bracketer) board
+            (loop (+ c dir) (vector-set! board c player)))))))
+
+
+(define (would-flip? move player board dir)
+  (let ((c (+ move dir)))
+    (and (equal? (vector-ref board c) (opponent player))
+         (find-bracketing-piece (+ c dir) player board dir))))
+
+(define (find-bracketing-piece square player board dir)
+  (cond ((equal? (vector-ref board square) player) square)
+        ((equal? (vectro-ref board square) (opponent player))
+         (find-bracketing-piece (+ square dir) player board dir))
+        (else 
+        
+   
+
+
+
+
+
+
+
 

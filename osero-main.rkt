@@ -94,11 +94,9 @@
 
 
                
-(defun count-difference (player board)
-       (- (count player board)
-          (count (opponent player) board)))
-      
-      
+(define (valid-p move)
+  (and (integer? move) (<= 11 move 88)
+       (or (= 0 (remainder i 10)) (= 9 (remainder i 10)))))
                    
 
 

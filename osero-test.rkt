@@ -1,5 +1,13 @@
 #lang racket
 
+(define all-squares
+  (let loop ((i 10) (squares '()))
+    (if (= i 89)
+        (reverse squares)
+        (if (or (= 0 (remainder i 10)) (= 9 (remainder i 10)))
+            (loop (+ i 1) squares)
+            (loop (+ i 1) (cons i squares))))))
+
 
 (define (initial-board)
   (let ((board (make-vector 100 'outer)))
@@ -19,26 +27,37 @@
     (initialize-board! board)
     board))
 
-(define all-squares
-  (let loop ((i 11) (squares '()))
-    (if (> i 88)
-        (reverse squares)
-        (if (<= 1 (remainder i 10) 8)
-            (loop (+ i 1) (cons i squares))
-            (loop (+ i 1) squares)))))
+
 
 (define initial-board-result (initial-board))
 (display initial-board-result)
 
 
-(define (print-board lst)
-  (let loopA ((row 1) (lst lst))
-    (if (<= row 8)
-        (loopB ((col 1) (lst lst))
-              (if (<= col 8)
-        (case (car lst)
-          (('outer) " ")
-          (('empty) ".")
-          (('black) "@")
-          (else "0"))
-        (loop 
+
+(define data #(outer outer outer outer outer outer outer outer outer outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty white black empty empty empty outer outer
+                     empty empty empty black white empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     outer outer outer outer outer outer outer outer outer))
+
+(define (format-piece piece)
+  (cond
+    [(eq? piece 'outer) "O"]
+    [(eq? piece 'empty) "."]
+    [(eq? piece 'white) "W"]
+    [(eq? piece 'black) "B"]))
+
+(define (print-chessboard data)
+  (for ([row (in-range 10)])
+    (for ([col (in-range 10)])
+      (display (format "~a " (format-piece (vector-ref data (+ col (* row 10)))))))
+    (newline)))
+
+(print-chessboard data)
+
+
