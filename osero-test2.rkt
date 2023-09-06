@@ -1,17 +1,33 @@
 #lang racket
 
+(define data #(outer outer outer outer outer outer outer outer outer outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty white black empty empty empty outer outer
+                     empty empty empty black white empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     outer outer outer outer outer outer outer outer outer))
 
 
 
-(define (valid-p move)
-  (and (integer? move) (<= 11 move 88)
-       (not (or (= 0 (remainder move 10)) (= 9 (remainder move 10))))))
+(define all-directions '(-11 -10 -9 -1 1 9 10 11))
+(define (opponent player) (if (equal? player 'black) 'white 'black))
+
+(define (valid-p move) ;ok
+  (and (integer? move) ;整数で
+       (<= 11 move 88) ;11-88で
+       (not (or (= 0 (remainder move 10)) (= 9 (remainder move 10))))));両端で無いか
 
       
 (define (legal-p move player board)
-  (and (eqv? (vector-ref board move) empty)
+  (and (eqv? (vector-ref board move) empty) ;空のマス目か？
        (member #t (map (lambda (dir) (would-flip? move player board dir))
   all-directions))))
+
+(map (lambda (x) (legal-p  x 'black data)) data)
 
 (define (make-move move player board)
   (vector-set! (vector-ref board move) player)
@@ -34,9 +50,12 @@
 
 (define (find-bracketing-piece square player board dir)
   (cond ((equal? (vector-ref board square) player) square)
-        ((equal? (vectro-ref board square) (opponent player))
+        ((equal? (vector-ref board square) (opponent player))
          (find-bracketing-piece (+ square dir) player board dir))
-        (else 
+        (else #f)))
+
+
+
         
    
 

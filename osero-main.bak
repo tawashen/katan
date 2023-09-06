@@ -2,7 +2,7 @@
 
 ; Your code here!
 
-
+(define all-directions '(-1 1 -10 -9 -1 1 9 10 11))
 (define empty 0)
 (define black 1)
 (define white 2)
@@ -13,7 +13,7 @@
 (define (name-of piece) ;Piece型を作ってないので数字だけで管理
   (string-ref ".@0?" piece))
 
-
+(define (opponent player) (if (eql player black) white black))
 
 ;(deftype board () '(simple=array piece (100))) 不要
 
