@@ -63,7 +63,8 @@
 ;(display (map (lambda (move) (would-flip? move 'black data -1)) (iota 99 1 1)))
 ;(display (map (lambda (x) (equal? (vector-ref data x) 'empty)) (iota 100)))
 
-
+(define (some prc lst)
+  (
 
         
    

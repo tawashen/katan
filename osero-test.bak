@@ -30,7 +30,7 @@
 
 
 (define initial-board-result (initial-board))
-;(display initial-board-result)
+(display initial-board-result)
 
 
 
