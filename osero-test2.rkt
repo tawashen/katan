@@ -24,18 +24,6 @@
        (not (or (= 0 (remainder move 10)) (= 9 (remainder move 10))))));両端で無いか
 
       
-(define (make-move move player board)
-  (vector-set! (vector-ref board move) player);moveの場所にPlayerを配置する
-  (for/list ((dir all-directions));(-11 -10 -1 1 ...)
-          (make-flips move player board dir))
-  board)
-
-(define (make-flips move player board dir)
-  (let ((bracketer (would-flip? move player board dir)));挟める場合は(-11 -10 -1 ...)のいずれかの数値が入る
-    (when bracketer;偽でなければ
-      (let loop ((c (+ move dir)) (board board))
-        (if (equal? c bracketer) board
-            (loop (+ c dir) (vector-set! board c player)))))))
 
 
 (define (would-flip? move player board dir);OK
@@ -62,12 +50,30 @@
        (some (lambda (dir) (would-flip? move player board dir))
   all-directions)))
 
-(display (map (lambda (x) (legal-p x 'black data)) (iota 100)))
+;(display (map (lambda (x) (legal-p x 'black data)) (iota 100)))
 
 
-;(display (map (lambda (move) (would-flip? move 'black data -1)) (iota 99 1 1)))
-;(display (map (lambda (x) (equal? (vector-ref data x) 'empty)) (iota 100)))
 
+(define (make-move move player board)
+ ; (vector-set! board move player);moveの場所にPlayerを配置する
+  (let ((board2 (list->vector (list-set (vector->list board) move player))))
+  (let ((board3 (for/list ((dir all-directions));(-11 -10 -1 1 ...)
+          (make-flips move player board2 dir))))
+  (filter (lambda (x) x) board3))))
+
+(define (make-flips move player board dir)
+  (let ((bracketer (would-flip? move player board dir)));挟める場合は(-11 -10 -1 ...)のいずれかの数値が入る
+    (if bracketer;偽でなければ
+      (let loop ((c (+ move dir)) (board board));マス目に移動距離を足したものをC
+        (cond ((equal? c bracketer) board);move + dir が挟めるマスまで来たらボードを返す
+            (loop (+ c dir) (list->vector (list-set (vector->list board) c player)))))
+      #f)))
+           
+      
+      
+                  ;(vector-set! board c player)))))));Cにdirを追加してボードのC位置にPlayerを入れる
+
+(make-move 56 'black data)
 
 
 

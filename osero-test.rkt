@@ -30,7 +30,7 @@
 
 
 (define initial-board-result (initial-board))
-;(display initial-board-result)
+(display initial-board-result)
 
 
 
@@ -58,6 +58,7 @@
       (display (format "~a " (format-piece (vector-ref data (+ col (* row 10)))))))
     (newline)))
 
-(print-chessboard data)
+;(print-chessboard data)
+
 
 
