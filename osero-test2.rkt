@@ -25,25 +25,25 @@
 
       
 (define (make-move move player board)
-  (vector-set! (vector-ref board move) player)
-  (for/list ((dir all-directions))
+  (vector-set! (vector-ref board move) player);moveの場所にPlayerを配置する
+  (for/list ((dir all-directions));(-11 -10 -1 1 ...)
           (make-flips move player board dir))
   board)
 
 (define (make-flips move player board dir)
-  (let ((bracketer (would-flip? move player board dir)))
-    (when bracketer
+  (let ((bracketer (would-flip? move player board dir)));挟める場合は(-11 -10 -1 ...)のいずれかの数値が入る
+    (when bracketer;偽でなければ
       (let loop ((c (+ move dir)) (board board))
         (if (equal? c bracketer) board
             (loop (+ c dir) (vector-set! board c player)))))))
 
 
-(define (would-flip? move player board dir)
+(define (would-flip? move player board dir);OK
   (let ((c (+ move dir))) ;c 打つ場所の一つDir側
     (and (equal? (vector-ref board c) (opponent player));一つDir側が敵側（White）であり
          (find-bracketing-piece (+ c dir) player board dir))))
 
-(define (find-bracketing-piece square player board dir)
+(define (find-bracketing-piece square player board dir);OK
   (cond ((equal? (vector-ref board square) player) square);打つ場所の一つDir側の更に一つ先がが自分のコマだったら
         ((equal? (vector-ref board square) (opponent player));↑が敵のコマだったら
          (find-bracketing-piece (+ square dir) player board dir));更に一つ先のコマで再帰する
@@ -51,10 +51,15 @@
 
 ;(would-flip? 57 'black data -1)
 
+(define (some proc lst);OK
+  (cond ((null? lst) #f)
+        ((proc (car lst)) (car lst))
+        (else (some proc (cdr lst)))))
 
-(define (legal-p move player board)
+
+(define (legal-p move player board);OK
   (and (equal? (vector-ref board move) 'empty) ;空のマス目か?
-       (filter (lambda (dir) (would-flip? move player board dir))
+       (some (lambda (dir) (would-flip? move player board dir))
   all-directions)))
 
 (display (map (lambda (x) (legal-p x 'black data)) (iota 100)))
@@ -63,8 +68,8 @@
 ;(display (map (lambda (move) (would-flip? move 'black data -1)) (iota 99 1 1)))
 ;(display (map (lambda (x) (equal? (vector-ref data x) 'empty)) (iota 100)))
 
-(define (some prc lst)
-  (
+
+
 
         
    
