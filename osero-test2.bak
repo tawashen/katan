@@ -1,49 +1,41 @@
 #lang racket
 
 
+(require srfi/1)
+(define data #(outer outer outer outer outer outer outer outer outer outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty white black empty empty empty outer outer
+                     empty empty empty black white empty empty empty outer outer
+                     empty empty empty black empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty empty empty empty empty outer outer
+                     outer outer outer outer outer outer outer outer outer))
 
 
-(define (valid-p move)
-  (and (integer? move) (<= 11 move 88)
-       (not (or (= 0 (remainder move 10)) (= 9 (remainder move 10))))))
-
-      
-(define (legal-p move player board)
-  (and (eqv? (vector-ref board move) empty)
-       (member #t (map (lambda (dir) (would-flip? move player board dir))
-  all-directions))))
-
-(define (make-move move player board)
-  (vector-set! (vector-ref board move) player)
-  (for/list ((dir all-directions))
-          (make-flips move player board dir))
-  board)
-
-(define (make-flips move player board dir)
-  (let ((bracketer (would-flip? move player board dir)))
-    (when bracketer
-      (let loop ((c (+ move dir)) (board board))
-        (if (equal? c bracketer) board
-            (loop (+ c dir) (vector-set! board c player)))))))
+(define (othello (bl-strategy wh-strategy)
+                 #:optional (print #t))
+  (let ((board (intial-board)))
+    (let loop ((player 'black) (
 
 
-(define (would-flip? move player board dir)
-  (let ((c (+ move dir)))
-    (and (equal? (vector-ref board c) (opponent player))
-         (find-bracketing-piece (+ c dir) player board dir))))
-
-(define (find-bracketing-piece square player board dir)
-  (cond ((equal? (vector-ref board square) player) square)
-        ((equal? (vectro-ref board square) (opponent player))
-         (find-bracketing-piece (+ square dir) player board dir))
-        (else 
-        
-   
+(defun othello (bl-strategy wh-strategy &optional (print t))
+  (let ((board (initial-board)))
+    (loop for player = black
+          then (next-to-play board player print)
+          for strategy = (if (eql player black)
+                             bl-strategy
+                             wh-strategy)
+          until (null player)
+          do (get-move strategy player board print))
+    (when print
+      (format t "~%The game is over.Final result:")
+      (print-board board))
+    (count-difference black board)))
 
 
 
 
 
-
-
-
+                
