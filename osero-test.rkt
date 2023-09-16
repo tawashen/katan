@@ -138,7 +138,7 @@
 
 ;ok?
 (define (get-move strategy player board print);->board
-  (when print (print-board board))
+  (when print (print-chessboard board))
   (let ((move (strategy player board)));strategyで出されたマス目をmoveに束縛
     (cond ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
            (when print (format "~a moves to ~a." (name-of player) move));Printが真なら表示
