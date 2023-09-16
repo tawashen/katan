@@ -30,7 +30,7 @@
 
 
 (define initial-board-result (initial-board))
-(display initial-board-result)
+;(display initial-board-result)
 
 
 
@@ -100,14 +100,14 @@
 
 
 
-(define (make-move move player board)
+(define (make-move move player board);->board
  ; (vector-set! board move player);moveの場所にPlayerを配置する
   (let ((board2 (list->vector (list-set (vector->list board) move player))))
   (let ((board3 (for/list ((dir all-directions));(-11 -10 -1 1 ...)
           (make-flips move player board2 dir))))
   (filter (lambda (x) x) board3))))
 
-(define (make-flips move player board dir)
+(define (make-flips move player board dir);->board
   (let ((bracketer (would-flip? move player board dir)));挟める場合は(-11 -10 -1 ...)のいずれかの数値が入る
     (if bracketer;偽でなければ
       (let loop ((c (+ move dir)) (board board));マス目に移動距離を足したものをC
@@ -117,9 +117,91 @@
            
       
       
-(make-move 56 'black data)
+;(make-move 56 'black data)
 
 
+
+;ok?
+(define (any-legal-move? player board);#tかどうかだけの返り値
+  (some (lambda (move) (legal-p move player board)) all-squares));一つでも指せる場所があるか?
+
+;ok?
+(define (next-to-play board previous-player print);->player
+  (let ((opp (opponent previous-player)))
+    (cond ((any-legal-move? opp board) opp);敵が一つでも指せる場所がある場合、敵を返す
+          ((any-legal-move? previous-player board);自分が一つでも指せれば
+           (when print;そしてPrintが#tだったら
+             (format "~a has no moves and must pass."
+             (name-of opp)));メッセージを表示
+           previous-player);Printが#fなら自分を返す
+          (else #f))))
+
+;ok?
+(define (get-move strategy player board print);->board
+  (when print (print-board board))
+  (let ((move (strategy player board)));strategyで出されたマス目をmoveに束縛
+    (cond ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
+           (when print (format "~a moves to ~a." (name-of player) move));Printが真なら表示
+           (make-move move playr board));
+          (else (display (format "illegal move: ~a" move)) (newline) ;駄目な手なら再帰
+                (get-move strategy player board print)))))
+
+;ok?      
+(define (human player board);humanの場合
+  (format "~a to move:" (name-of player))
+  (string->number (read-line)));人力で手を入力
+
+;ok
+(define (random-elt lst);リストの中からランダムで一つ選ぶ
+  (define lst-length (length lst))
+  (define random-index (random lst-length))
+  (list-ref lst random-index))
+
+;ok?
+(define (random-strategy player board);打てる手の中からランダムで一つ選ぶ
+  (random-elt (legal-moves player board)))
+
+#|
+;CL
+(define (legal-moves player board)
+  (loop for move in all-squares
+        when (legal-p move player board) collect move))
+|#
+
+;ok?
+(define (legal-moves player board);適法な手のリストを返す
+  (filter (lambda (x) x)
+          (for/list ((move all-squares))
+            (legal-p move player board))))
+
+
+(define (othello (bl-strategy wh-strategy)
+                 #:optional (print #t))
+    (let loop ((player 'black) (board (intial-board)) (strategy bl-strategy))
+      (if (not player) board
+          (loop
+           (next-to-play board player print)
+           (get-move strategy player board print)
+           (if (equal player black) bl-strategy wh-strategy)))))
+
+#|
+;CL
+(defun othello (bl-strategy wh-strategy &optional (print t))
+  (let ((board (initial-board)))
+    (loop for player = black
+          then (next-to-play board player print)
+          for strategy = (if (eql player black)
+                             bl-strategy
+                             wh-strategy)
+          until (null player)
+          do (get-move strategy player board print))
+    (when print
+      (format t "~%The game is over.Final result:")
+      (print-board board))
+    (count-difference black board)))
+|#
+
+            
 
         
    
