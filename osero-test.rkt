@@ -127,12 +127,12 @@
 
 ;ok?
 (define (next-to-play board previous-player print);->player
-  (let ((opp (opponent previous-player)))
+  (let ((opp (opponent previous-player)));
     (cond ((any-legal-move? opp board) opp);敵が一つでも指せる場所がある場合、敵を返す
           ((any-legal-move? previous-player board);自分が一つでも指せれば
            (when print;そしてPrintが#tだったら
              (format "~a has no moves and must pass."
-             (name-of opp)));メッセージを表示
+             opp));メッセージを表示
            previous-player);Printが#fなら自分を返す
           (else #f))))
 
@@ -141,14 +141,14 @@
   (when print (print-chessboard board))
   (let ((move (strategy player board)));strategyで出されたマス目をmoveに束縛
     (cond ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
-           (when print (format "~a moves to ~a." (name-of player) move));Printが真なら表示
-           (make-move move playr board));
+           (when print (format "~a moves to ~a." player move));Printが真なら表示
+           (make-move move player board));
           (else (display (format "illegal move: ~a" move)) (newline) ;駄目な手なら再帰
                 (get-move strategy player board print)))))
 
 ;ok?      
 (define (human player board);humanの場合
-  (format "~a to move:" (name-of player))
+  (format "~a to move:" player)
   (string->number (read-line)));人力で手を入力
 
 ;ok
@@ -175,14 +175,14 @@
             (legal-p move player board))))
 
 
-(define (othello (bl-strategy wh-strategy)
+(define (othello bl-strategy wh-strategy
                  #:optional (print #t))
-    (let loop ((player 'black) (board (intial-board)) (strategy bl-strategy))
+    (let loop ((player 'black) (board (initial-board)) (strategy bl-strategy))
       (if (not player) board
           (loop
            (next-to-play board player print)
            (get-move strategy player board print)
-           (if (equal player black) bl-strategy wh-strategy)))))
+           (if (equal? player 'black) bl-strategy wh-strategy)))))
 
 #|
 ;CL
