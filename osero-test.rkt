@@ -93,7 +93,8 @@
 
 (define (legal-p move player board);OK
   (and (equal? (vector-ref board move) 'empty) ;空のマス目か?
-       (some (lambda (dir) (would-flip? move player board dir))
+        (some
+         (lambda (dir) (would-flip? move player board dir))
   all-directions)))
 
 ;(display (map (lambda (x) (legal-p x 'black data)) (iota 100)))
@@ -105,7 +106,7 @@
   (let ((board2 (list->vector (list-set (vector->list board) move player))))
   (let ((board3 (for/list ((dir all-directions));(-11 -10 -1 1 ...)
           (make-flips move player board2 dir))))
-  (filter (lambda (x) x) board3))))
+  (car (filter (lambda (x) x) board3)))))
 
 (define (make-flips move player board dir);->board
   (let ((bracketer (would-flip? move player board dir)));挟める場合は(-11 -10 -1 ...)のいずれかの数値が入る
@@ -117,7 +118,7 @@
            
       
       
-;(make-move 56 'black data)
+(make-move 56 'black data)
 
 
 
@@ -183,6 +184,8 @@
            (next-to-play board player print)
            (get-move strategy player board print)
            (if (equal? player 'black) bl-strategy wh-strategy)))))
+
+(othello human human)
 
 #|
 ;CL
