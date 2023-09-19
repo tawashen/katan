@@ -72,16 +72,16 @@
       
 
 
-(define (would-flip? move player board dir);OK
+(define (would-flip? move player board dir);OK move=打つ場所
   (let ((c (+ move dir))) ;c 打つ場所の一つDir側
     (and (equal? (vector-ref board c) (opponent player));一つDir側が敵側(White)であり
          (find-bracketing-piece (+ c dir) player board dir))))
 
-(define (find-bracketing-piece square player board dir);OK
-  (cond ((equal? (vector-ref board square) player) square);打つ場所の一つDir側の更に一つ先がが自分のコマだったら
+(define (find-bracketing-piece square player board dir #:optional (lst '()));ここを座標のリストにして返さないといけない
+  (cond ((equal? (vector-ref board square) player) lst);打つ場所の一つDir側の更に一つ先がが自分のコマだったらソコ
         ((equal? (vector-ref board square) (opponent player));↑が敵のコマだったら
-         (find-bracketing-piece (+ square dir) player board dir));更に一つ先のコマで再帰する
-        (else #f)))
+         (find-bracketing-piece (+ square dir) player board dir (cons square lst)));更に一つ先のコマで再帰する
+        (else #f)));自分で挟めなかったら#f
 
 ;(would-flip? 57 'black data -1)
 
@@ -109,8 +109,8 @@
   (car (filter (lambda (x) x) board3)))))
 
 (define (make-flips move player board dir);->board
-  (let ((bracketer (would-flip? move player board dir)));挟める場合は(-11 -10 -1 ...)のいずれかの数値が入る
-    (if bracketer;偽でなければ
+  (let ((bracketer (would-flip? move player board dir)));ひっくり返す座標のリストが入る
+    (if (not (null? bracketer));偽でなければ
       (let loop ((c (+ move dir)) (board board));マス目に移動距離を足したものをC
         (cond ((equal? c bracketer) board);move + dir が挟めるマスまで来たらボードを返す
             (loop (+ c dir) (list->vector (list-set (vector->list board) c player)))))
@@ -118,7 +118,7 @@
            
       
       
-(make-move 56 'black data)
+;(make-move 56 'black data)
 
 
 
