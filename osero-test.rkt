@@ -115,7 +115,9 @@
 (define (make-flips move player board);->board
   (let ((bracketer (search-for-numbers (append
                         (filter (lambda (z) z)
-                                (foldl (lambda (dir acc) (cons (would-flip? move player board dir) acc)) '() all-directions))))));ひっくり返す座標のリストが入る
+                                (foldl (lambda (dir acc)
+                                         (cons (would-flip? move player board dir) acc))
+                                       '() all-directions))))));ひっくり返す座標のリストが入る
     (if bracketer ;(display bracketer)
         (list->vector (foldl (lambda (x acc) (list-set acc x player)) (vector->list board) bracketer))
         #f)));偽でなければ
