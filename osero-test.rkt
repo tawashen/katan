@@ -40,8 +40,8 @@
                      empty empty empty empty empty empty empty empty outer outer
                      empty empty empty white black empty empty empty outer outer
                      empty empty empty black white empty empty empty outer outer
-                     empty empty empty empty empty empty empty empty outer outer
-                     empty empty empty empty empty empty empty empty outer outer
+                     empty empty empty empty white empty empty empty outer outer
+                     empty empty black white empty empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
                      outer outer outer outer outer outer outer outer outer))
 
@@ -75,15 +75,18 @@
 (define (would-flip? move player board dir);OK move=打つ場所
   (let ((c (+ move dir))) ;c 打つ場所の一つDir側
     (and (equal? (vector-ref board c) (opponent player));一つDir側が敵側(White)であり
-         (find-bracketing-piece (+ c dir) player board dir))))
+         (find-bracketing-piece (+ c dir) player board dir))));その先に自分のコマがある
 
-(define (find-bracketing-piece square player board dir #:optional (lst '()));ここを座標のリストにして返さないといけない
-  (cond ((equal? (vector-ref board square) player) lst);打つ場所の一つDir側の更に一つ先がが自分のコマだったらソコ
+
+(define (find-bracketing-piece square player board dir  (lst '()));ここを座標のリストにして返さないといけない
+  (cond ((equal? (vector-ref board square) player) (cons (- square dir) lst));打つ場所の一つDir側の更に一つ先がが自分のコマだったらソコ
         ((equal? (vector-ref board square) (opponent player));↑が敵のコマだったら
-         (find-bracketing-piece (+ square dir) player board dir (cons square lst)));更に一つ先のコマで再帰する
+         (find-bracketing-piece (+ square dir) player board dir (cons (- square dir) lst)));更に一つ先のコマで再帰する
         (else #f)));自分で挟めなかったら#f
 
 ;(would-flip? 57 'black data -1)
+;(find-bracketing-piece 56 'black data -1)
+
 
 (define (some proc lst);OK
   (cond ((null? lst) #f)
@@ -99,25 +102,44 @@
 
 ;(display (map (lambda (x) (legal-p x 'black data)) (iota 100)))
 
+(define (search-for-numbers lst)
+  (cond
+    [(null? lst) '()] ; リストが空の場合は空リストを返す
+    [(number? (car lst)) ; 先頭が数値の場合
+     (cons (car lst) (search-for-numbers (cdr lst)))] ; 数値を結果のリストに追加し、残りの部分に再帰
+    [(list? (car lst)) ; 先頭がリストの場合
+     (append (search-for-numbers (car lst)) (search-for-numbers (cdr lst)))] ; リスト内を再帰的に検索
+    [else
+     (search-for-numbers (cdr lst))])) ; それ以外の場合はスキップして次の要素を探索
+
+(define (make-flips move player board);->board
+  (let ((bracketer (search-for-numbers (append
+                        (filter (lambda (z) z)
+                                (foldl (lambda (dir acc) (cons (would-flip? move player board dir) acc)) '() all-directions))))));ひっくり返す座標のリストが入る
+    (if bracketer ;(display bracketer)
+        (list->vector (foldl (lambda (x acc) (list-set acc x player)) (vector->list board) bracketer))
+        #f)));偽でなければ
+   ;   (let loop ((c (+ move dir)) (board board));マス目に移動距離を足したものをC
+    ;    (cond ((equal? c bracketer) board);move + dir が挟めるマスまで来たらボードを返す
+      ;      (loop (+ c dir) (list->vector (list-set (vector->list board) c player)))))
+    ;  #f)))
+;(make-flips 75 'black data)
 
 
 (define (make-move move player board);->board
  ; (vector-set! board move player);moveの場所にPlayerを配置する
   (let ((board2 (list->vector (list-set (vector->list board) move player))))
-  (let ((board3 (for/list ((dir all-directions));(-11 -10 -1 1 ...)
-          (make-flips move player board2 dir))))
-  (car (filter (lambda (x) x) board3)))))
+  (let ((board3 ;(for/list ((dir all-directions));(-11 -10 -1 1 ...)
+          (make-flips move player board2))) board3)))
+   ; (car (filter (lambda (x) x) board3)))))
 
-(define (make-flips move player board dir);->board
-  (let ((bracketer (would-flip? move player board dir)));ひっくり返す座標のリストが入る
-    (if (not (null? bracketer));偽でなければ
-      (let loop ((c (+ move dir)) (board board));マス目に移動距離を足したものをC
-        (cond ((equal? c bracketer) board);move + dir が挟めるマスまで来たらボードを返す
-            (loop (+ c dir) (list->vector (list-set (vector->list board) c player)))))
-      #f)))
+    
+;(make-move 75 'black data)
+
+
            
-      
-      
+
+;(make-flips 57 'black data -1)
 ;(make-move 56 'black data)
 
 
@@ -185,6 +207,7 @@
            (get-move strategy player board print)
            (if (equal? player 'black) bl-strategy wh-strategy)))))
 
+;(othello (random-strategy 'black board) (random-strategy 'white board))
 (othello human human)
 
 #|
