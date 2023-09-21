@@ -197,7 +197,11 @@
 (define (legal-moves player board);適法な手のリストを返す
   (filter (lambda (x) x)
           (for/list ((move all-squares))
-            (legal-p move player board))))
+            (if (legal-p move player board) move #f))))
+
+;(display all-squares)
+;(legal-moves 'black data)
+;(legal-p 56 'black data)
 
 
 (define (othello bl-strategy wh-strategy
@@ -205,12 +209,12 @@
     (let loop ((player 'black) (board (initial-board)) (strategy bl-strategy))
       (if (not player) board
           (loop
-           (next-to-play board player print)
-           (get-move strategy player board print)
-           (if (equal? player 'black) bl-strategy wh-strategy)))))
+           (next-to-play board player print);ループするごとにプレイヤー入れ替え
+           (get-move strategy player board print);新しいボードを返す
+           (if (equal? player 'black) bl-strategy wh-strategy)))));ストラテジーをプレイヤーに従って
 
-;(othello (random-strategy 'black board) (random-strategy 'white board))
-(othello human human)
+(othello human random-strategy)
+;(othello human human)
 
 #|
 ;CL
@@ -231,8 +235,77 @@
 
             
 
-        
-   
+
+
+;cl
+(defun maximize-difference (player board)
+  (funcall (maximizer #'count-difference)
+           player board))
+
+;scheme
+(define (maximize-difference player board)
+  ((maximizer count-difference) player board));maximizer関数を呼び出して出来たクロージャにPlayerとBoardを入れる
+
+
+;cl
+(defun maximizer (eval-fn)
+  #'(lambda (player board)
+      (let* ((moves (legal-moves player board))
+             (scores (mapcar #'(lambda (move)
+                                 (funcall eval-fn player
+                                          (make-move move player
+                                                     (copy-board board))))
+                             moves))
+             (best (apply #'max scores)))
+        (elt moves (position best scores)))))
+
+;scheme
+(define (maximizer eval-fn);今回はEval-fnはCount-difference
+  (lambda (player board)
+    (let* ((moves (legal-moves player board));movesに打てる手をリストで束縛
+           (scores (map (lambda (move);movesを使ってmap
+                          ((eval-fn player);Count-differenceにPlayerをクロージャしたものに
+                           (make-move move player;盤面のデータを生成
+                                      (copy-board board))))
+                        moves))
+           (best (apply max scores)));Scoresのリストの中で最大のものをBestに束縛
+      (list-ref moves (find-position best scores)))));movesリストの中からBestと数値のmoveを返す
+
+
+
+
+
+
+
+
+
+#|
+(define (count-difference player board)
+  ; スコアの差を計算するコードをここに記述
+  )
+
+(define (legal-moves player board)
+  ; 合法な手を取得するコードをここに記述
+  )
+
+(define (make-move move player board)
+  ; 手を適用して新しいボードを生成するコードをここに記述
+  )
+
+(define (copy-board board)
+  ; ボードのコピーを生成するコードをここに記述
+  )
+
+(define (max lst)
+  (apply max lst))
+
+(define (find-position item lst)
+  (let loop ((lst lst)
+             (index 0))
+    (cond ((null? lst) #f)
+          ((equal? item (car lst)) index)
+          (else (loop (cdr lst) (+ index 1))))))
+|#
 
 
 
