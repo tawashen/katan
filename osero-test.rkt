@@ -158,7 +158,7 @@
            (when print;そしてPrintが#tだったら
              (format "~a has no moves and must pass."
              opp));メッセージを表示
-           previous-player);Printが#fなら自分を返す
+           previous-player);自分を返す
           (else #f))))
 
 ;ok?
@@ -213,7 +213,7 @@
            (get-move strategy player board print);新しいボードを返す
            (if (equal? player 'black) bl-strategy wh-strategy)))));ストラテジーをプレイヤーに従って
 
-(othello random-strategy random-strategy)
+
 ;(othello human human)
 
 #|
@@ -291,11 +291,11 @@
            (best (apply max scores)));Scoresのリストの中で最大のものをBestに束縛
       (list-ref moves (find-position best scores)))));movesリストの中からBestと数値のmoveを返す
 
-(maximize-difference 'black data)
+;(maximize-difference 'black data)
 
 
 
-
+(othello random-strategy maximize-difference)
 
 
 
