@@ -213,7 +213,7 @@
            (get-move strategy player board print);新しいボードを返す
            (if (equal? player 'black) bl-strategy wh-strategy)))));ストラテジーをプレイヤーに従って
 
-;(othello human random-strategy)
+(othello random-strategy random-strategy)
 ;(othello human human)
 
 #|
