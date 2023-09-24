@@ -94,7 +94,7 @@
         (else (some proc (cdr lst)))))
 
 
-(define (legal-p move player board);OK
+(define (legal-p move player board);OK 
   (and (equal? (vector-ref board move) 'empty) ;空のマス目か?
         (some
          (lambda (dir) (would-flip? move player board dir))
@@ -156,31 +156,42 @@
     (cond ((any-legal-move? opp board) opp);敵が一つでも指せる場所がある場合、敵を返す
           ((any-legal-move? previous-player board);自分が一つでも指せれば
            (when print;そしてPrintが#tだったら
-             (format "~a has no moves and must pass."
-             opp));メッセージを表示
+             (display (format "~a has no moves and must pass.~%"
+             opp)));メッセージを表示
            previous-player);自分を返す
           (else #f))))
+
+(define (win-lose-count player board)
+  (define lst (vector->list board))
+  (let loop ((lst lst) (count 0))
+    (if (null? lst) count
+        (loop (cdr lst) (if (equal? player  (car lst)) (+ 1 count) count)))))
+  
+(define (end board)
+  (let ((black (win-lose-count 'black board)) (white (win-lose-count 'white board)))
+ (display (format "black:~a white:~a" black white)) board))
 
 ;ok?
 (define (get-move strategy player board print);->board
   (when print (print-chessboard board))
   (let ((move (strategy player board)));strategyで出されたマス目をmoveに束縛
-    (cond ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
-           (when print (format "~a moves to ~a." player move));Printが真なら表示
+    (cond ((not move) (end board))
+      ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
+           (when print (display (format "~a moves to ~a.~%" player move)));Printが真なら表示
            (make-move move player board));
-          (else (display (format "illegal move: ~a" move)) (newline) ;駄目な手なら再帰
+          (else (display (format "illegal move: ~a~%" move)) (newline) ;駄目な手なら再帰
                 (get-move strategy player board print)))))
 
 ;ok?      
 (define (human player board);humanの場合
-  (format "~a to move:" player)
+  (display (format "~a to move:" player))
   (string->number (read-line)));人力で手を入力
 
 ;ok
 (define (random-elt lst);リストの中からランダムで一つ選ぶ
   (define lst-length (length lst))
-  (define random-index (random lst-length))
-  (list-ref lst random-index))
+  (define random-index (if (null? lst) #f (random lst-length)))
+  (if random-index (list-ref lst random-index) #f))
 
 ;ok?
 (define (random-strategy player board);打てる手の中からランダムで一つ選ぶ
@@ -207,14 +218,16 @@
 (define (othello bl-strategy wh-strategy
                  #:optional (print #t))
     (let loop ((player 'black) (board (initial-board)) (strategy bl-strategy))
-      (if (not player) board
+    ;  (if (not (member 'empty (vector->list board)))
+      (if (not player) (display "end") ;void;(end board)
+       ;   (display (format "black:~a white:~a" (count-difference 'black board) (count-difference 'white board)))
           (loop
            (next-to-play board player print);ループするごとにプレイヤー入れ替え
            (get-move strategy player board print);新しいボードを返す
            (if (equal? player 'black) bl-strategy wh-strategy)))));ストラテジーをプレイヤーに従って
 
 
-;(othello human human)
+
 
 #|
 ;CL
@@ -288,13 +301,14 @@
                            (make-move move player;盤面のデータを生成
                                       board)))
                         moves)) 
-           (best (apply max scores)));Scoresのリストの中で最大のものをBestに束縛
-      (list-ref moves (find-position best scores)))));movesリストの中からBestと数値のmoveを返す
+           (best (if (null? scores) #f (apply max scores))));Scoresのリストの中で最大のものをBestに束縛
+      (if best (list-ref moves (find-position best scores)) #f))));movesリストの中からBestと数値のmoveを返す
 
 ;(maximize-difference 'black data)
+;moves uteru-te scores move gotono tensuu best tensuunobesut 
 
 
-
+;(othello human random-strategy)
 (othello random-strategy maximize-difference)
 
 
