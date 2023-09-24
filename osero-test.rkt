@@ -218,9 +218,7 @@
 (define (othello bl-strategy wh-strategy
                  #:optional (print #t))
     (let loop ((player 'black) (board (initial-board)) (strategy bl-strategy))
-    ;  (if (not (member 'empty (vector->list board)))
       (if (not player) (display "end") ;void;(end board)
-       ;   (display (format "black:~a white:~a" (count-difference 'black board) (count-difference 'white board)))
           (loop
            (next-to-play board player print);ループするごとにプレイヤー入れ替え
            (get-move strategy player board print);新しいボードを返す
