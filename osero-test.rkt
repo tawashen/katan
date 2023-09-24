@@ -213,7 +213,7 @@
            (get-move strategy player board print);新しいボードを返す
            (if (equal? player 'black) bl-strategy wh-strategy)))));ストラテジーをプレイヤーに従って
 
-(othello human random-strategy)
+;(othello human random-strategy)
 ;(othello human human)
 
 #|
@@ -236,17 +236,28 @@
             
 
 
+;(define (max lst)
+ ; (apply max lst))
 
+(define (find-position item lst)
+  (let loop ((lst lst)
+             (index 0))
+    (cond ((null? lst) #f)
+          ((equal? item (car lst)) index)
+          (else (loop (cdr lst) (+ index 1))))))
+
+#|
 ;cl
 (defun maximize-difference (player board)
   (funcall (maximizer #'count-difference)
            player board))
+|#
 
 ;scheme
 (define (maximize-difference player board)
   ((maximizer count-difference) player board));maximizer関数を呼び出して出来たクロージャにPlayerとBoardを入れる
 
-
+#|
 ;cl
 (defun maximizer (eval-fn)
   #'(lambda (player board)
@@ -258,54 +269,30 @@
                              moves))
              (best (apply #'max scores)))
         (elt moves (position best scores)))))
+|#
+
+;ok
+(define (count-difference player board);board内のPlayer数を数える
+  (let loop ((lst (vector->list board)) (count 0))
+    (if (null? lst) count
+        (loop (cdr lst) (if (equal? player (car lst)) (+ count 1) count)))))
+          
+  
 
 ;scheme
 (define (maximizer eval-fn);今回はEval-fnはCount-difference
   (lambda (player board)
     (let* ((moves (legal-moves player board));movesに打てる手をリストで束縛
            (scores (map (lambda (move);movesを使ってmap
-                          ((eval-fn player);Count-differenceにPlayerをクロージャしたものに
+                          (eval-fn player;Count-differenceにPlayerをクロージャしたものに
                            (make-move move player;盤面のデータを生成
-                                      (copy-board board))))
-                        moves))
+                                      board)))
+                        moves)) 
            (best (apply max scores)));Scoresのリストの中で最大のものをBestに束縛
       (list-ref moves (find-position best scores)))));movesリストの中からBestと数値のmoveを返す
 
+(maximize-difference 'black data)
 
-
-
-
-
-
-
-
-#|
-(define (count-difference player board)
-  ; スコアの差を計算するコードをここに記述
-  )
-
-(define (legal-moves player board)
-  ; 合法な手を取得するコードをここに記述
-  )
-
-(define (make-move move player board)
-  ; 手を適用して新しいボードを生成するコードをここに記述
-  )
-
-(define (copy-board board)
-  ; ボードのコピーを生成するコードをここに記述
-  )
-
-(define (max lst)
-  (apply max lst))
-
-(define (find-position item lst)
-  (let loop ((lst lst)
-             (index 0))
-    (cond ((null? lst) #f)
-          ((equal? item (car lst)) index)
-          (else (loop (cdr lst) (+ index 1))))))
-|#
 
 
 
