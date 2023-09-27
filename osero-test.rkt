@@ -307,9 +307,95 @@
 
 
 ;(othello human random-strategy)
-(othello random-strategy maximize-difference)
+;(othello random-strategy maximize-difference)
 
 
+(define *weights* #(0 0 0 0 0 0 0 0 0 0
+                      0 120 -20 20 5 5 20 -20 120 0
+                      0 -20 -40 -5 -5 -5 -40 -20 0
+                      0 20 -5 15 3 3 15 -5 20 0
+                      0 5 -5 3 3 3 3 -5 5 0
+                      0 5 -5 3 3 3 3 -5 5 0
+                      0 20 -5 15 3 3 15 -5 20 0
+                      0 -20 -40 -5 -5 -5 -40 -20 0
+                      0 120 -20 20 5 5 20 -20 120 0
+                      0 0 0 0 0 0 0 0 0 0))
+
+
+(define (weighted-squares player board)
+  (let ((opp (opponent player)) (l-board (vector->list board)) (l-weights (vector->list *weights*)))
+    (let loop ((lst all-squares) (score 0))
+      (if (null? lst) score
+          (loop (cdr lst) (cond ((equal? (list-ref l-board (car lst)) player)
+                                 (+ score (list-ref l-weights (car lst))))
+                                ((equal? (list-ref  l-board (car lst)) opp)
+                                 (- score (list-ref l-weights (car lst))))
+                                (else score)))))))
+
+#|
+;cl
+(defun  weighted-squares (player board)
+  (let ((opp (opponent plyaer)))
+    (loop for i in all-squares
+          when (eql (bref board i) player)
+          sum (aref *weights* i)
+          when (eql (bref board i) opp)
+          sum (- (aref *weights* i)))))
+|#
+
+;(weighted-squares 'black data)
+
+
+#|
+;cl
+(defun final-value (player board)
+  (case (signum (count-difference player board))
+    (-1 losing-value)
+    (0 0)
+    (+1 winning-value)))
+|#
+
+(define losing-value 0)
+(define winning-value 0)
+
+(define (signum num)
+  (cond ((positive? num) 1)
+        ((negative? num) -1)
+        (else 0)))
+
+(define (final-value player board)
+  (let ((sig (signum (count-difference player board))))
+  (case sig
+    ((-1) losing-value)
+    ((0) 0)
+    ((1) winning-value))))
+
+    
+
+;(display all-squares)
+
+
+;cl
+(defun minimax (player board ply eval-fn)
+  (if (= ply 0)
+      (funcall eval-fn player board)
+      (let ((moves (legal-moves player board)))
+        (if (null moves)
+            (if (any-legal-move? (opponent player) board)
+                (- (minimax (opponent player) board (- ply 1) eval-fn))
+                (final-value player board))
+            (let ((best-move nil) (best-val nil))
+              (dolist (move moves)
+                      (let* ((board2 (make-move move player (copy-board board)))
+                             (val (- (minimax (opponent player) board2 (- ply 1) eval-fn))))
+                        (when (or (null best-val)
+                                  (> val best-val))
+                          (setf best-val val)
+                          (setf best-move move))))
+              (values best-val best-move))))))
+                      
+                      
+                      
 
 
 
