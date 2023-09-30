@@ -375,26 +375,27 @@
 ;(display all-squares)
 
 
-;cl
+;test
 (define (minimax player board ply eval-fn)
-  (if (= ply 0)
+  (if (= ply 0);最終評価？
+      ;(display "end")
       (eval-fn player board)
-      (let ((moves (legal-moves player board)))
-        (if (null? moves)
-            (if (any-legal-move? (opponent player) board)
-                (- (minimax (opponent player) board (- ply 1) eval-fn))
-                (final-value player board))
-            (let ((best-move #f) (best-val #f))
-              (let loop ((move moves))
-                      (let* ((board2 (make-move move player (copy-board board)))
-                             (val (- (minimax (opponent player) board2 (- ply 1) eval-fn))))
-                        (when (or (null? best-val)
-                                  (> val best-val))
-                          (setf best-val val)
-                          (setf best-move move))))
-              (values best-val best-move))))))
-                 
-                      
+      (let ((moves (legal-moves player board)));打てる手をリストで返す
+        (if (null? moves);打てる手がもうなくて
+            (if (any-legal-move? (opponent player) board);敵の打つ手があるならば
+                 (minimax (opponent player) board (- ply 1) eval-fn);敵側でMinimax
+                (final-value player board));敵も打つ手が無いなら最終評価
+              (let loop ((moves moves) (best-move 0) (best-val 0));打てる手がまだあるなら
+                (if (null? moves) best-move
+                  ;  (values best-val best-move);最適の値を返す                         
+                      (let* ((board2 (make-move (car moves) player board))
+                             (val (minimax (opponent player) board2 (- ply 1) eval-fn)))
+                        (loop (cdr moves) (if (> val best-val) val best-val) (if (> val best-val) (car moves) best-move)))))))))
+     
+(minimax 'black data 3 count-difference)
+
+
+     #|                 
 ;cl        
 (defun minimax (player board ply eval-fn)
   (if (= ply 0)
@@ -414,7 +415,7 @@
                     (setf best-move move))))
               (values best-val best-move)))))) ; 最適な手の評価値と手を返す
 
-
+|#
 
 
 
