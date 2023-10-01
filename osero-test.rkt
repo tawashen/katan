@@ -378,7 +378,6 @@
 ;test
 (define (minimax player board ply eval-fn)
   (if (= ply 0);最終評価？
-      ;(display "end")
       (eval-fn player board)
       (let ((moves (legal-moves player board)));打てる手をリストで返す
         (if (null? moves);打てる手がもうなくて

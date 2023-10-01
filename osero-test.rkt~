@@ -94,7 +94,7 @@
         (else (some proc (cdr lst)))))
 
 
-(define (legal-p move player board);OK
+(define (legal-p move player board);OK 
   (and (equal? (vector-ref board move) 'empty) ;空のマス目か?
         (some
          (lambda (dir) (would-flip? move player board dir))
@@ -156,31 +156,42 @@
     (cond ((any-legal-move? opp board) opp);敵が一つでも指せる場所がある場合、敵を返す
           ((any-legal-move? previous-player board);自分が一つでも指せれば
            (when print;そしてPrintが#tだったら
-             (format "~a has no moves and must pass."
-             opp));メッセージを表示
-           previous-player);Printが#fなら自分を返す
+             (display (format "~a has no moves and must pass.~%"
+             opp)));メッセージを表示
+           previous-player);自分を返す
           (else #f))))
+
+(define (win-lose-count player board)
+  (define lst (vector->list board))
+  (let loop ((lst lst) (count 0))
+    (if (null? lst) count
+        (loop (cdr lst) (if (equal? player  (car lst)) (+ 1 count) count)))))
+  
+(define (end board)
+  (let ((black (win-lose-count 'black board)) (white (win-lose-count 'white board)))
+ (display (format "black:~a white:~a" black white)) board))
 
 ;ok?
 (define (get-move strategy player board print);->board
   (when print (print-chessboard board))
   (let ((move (strategy player board)));strategyで出されたマス目をmoveに束縛
-    (cond ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
-           (when print (format "~a moves to ~a." player move));Printが真なら表示
+    (cond ((not move) (end board))
+      ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
+           (when print (display (format "~a moves to ~a.~%" player move)));Printが真なら表示
            (make-move move player board));
-          (else (display (format "illegal move: ~a" move)) (newline) ;駄目な手なら再帰
+          (else (display (format "illegal move: ~a~%" move)) (newline) ;駄目な手なら再帰
                 (get-move strategy player board print)))))
 
 ;ok?      
 (define (human player board);humanの場合
-  (format "~a to move:" player)
+  (display (format "~a to move:" player))
   (string->number (read-line)));人力で手を入力
 
 ;ok
 (define (random-elt lst);リストの中からランダムで一つ選ぶ
   (define lst-length (length lst))
-  (define random-index (random lst-length))
-  (list-ref lst random-index))
+  (define random-index (if (null? lst) #f (random lst-length)))
+  (if random-index (list-ref lst random-index) #f))
 
 ;ok?
 (define (random-strategy player board);打てる手の中からランダムで一つ選ぶ
@@ -207,14 +218,14 @@
 (define (othello bl-strategy wh-strategy
                  #:optional (print #t))
     (let loop ((player 'black) (board (initial-board)) (strategy bl-strategy))
-      (if (not player) board
+      (if (not player) (display "end") ;void;(end board)
           (loop
            (next-to-play board player print);ループするごとにプレイヤー入れ替え
            (get-move strategy player board print);新しいボードを返す
            (if (equal? player 'black) bl-strategy wh-strategy)))));ストラテジーをプレイヤーに従って
 
-(othello human random-strategy)
-;(othello human human)
+
+
 
 #|
 ;CL
@@ -236,17 +247,28 @@
             
 
 
+;(define (max lst)
+ ; (apply max lst))
 
+(define (find-position item lst)
+  (let loop ((lst lst)
+             (index 0))
+    (cond ((null? lst) #f)
+          ((equal? item (car lst)) index)
+          (else (loop (cdr lst) (+ index 1))))))
+
+#|
 ;cl
 (defun maximize-difference (player board)
   (funcall (maximizer #'count-difference)
            player board))
+|#
 
 ;scheme
 (define (maximize-difference player board)
   ((maximizer count-difference) player board));maximizer関数を呼び出して出来たクロージャにPlayerとBoardを入れる
 
-
+#|
 ;cl
 (defun maximizer (eval-fn)
   #'(lambda (player board)
@@ -258,62 +280,142 @@
                              moves))
              (best (apply #'max scores)))
         (elt moves (position best scores)))))
+|#
+
+;ok
+(define (count-difference player board);board内のPlayer数を数える
+  (let loop ((lst (vector->list board)) (count 0))
+    (if (null? lst) count
+        (loop (cdr lst) (if (equal? player (car lst)) (+ count 1) count)))))
+          
+  
 
 ;scheme
 (define (maximizer eval-fn);今回はEval-fnはCount-difference
   (lambda (player board)
     (let* ((moves (legal-moves player board));movesに打てる手をリストで束縛
            (scores (map (lambda (move);movesを使ってmap
-                          ((eval-fn player);Count-differenceにPlayerをクロージャしたものに
+                          (eval-fn player;Count-differenceにPlayerをクロージャしたものに
                            (make-move move player;盤面のデータを生成
-                                      (copy-board board))))
-                        moves))
-           (best (apply max scores)));Scoresのリストの中で最大のものをBestに束縛
-      (list-ref moves (find-position best scores)))));movesリストの中からBestと数値のmoveを返す
+                                      board)))
+                        moves)) 
+           (best (if (null? scores) #f (apply max scores))));Scoresのリストの中で最大のものをBestに束縛
+      (if best (list-ref moves (find-position best scores)) #f))));movesリストの中からBestと数値のmoveを返す
+
+;(maximize-difference 'black data)
+;moves uteru-te scores move gotono tensuu best tensuunobesut 
 
 
+;(othello human random-strategy)
+;(othello random-strategy maximize-difference)
 
 
+(define *weights* #(0 0 0 0 0 0 0 0 0 0
+                      0 120 -20 20 5 5 20 -20 120 0
+                      0 -20 -40 -5 -5 -5 -40 -20 0
+                      0 20 -5 15 3 3 15 -5 20 0
+                      0 5 -5 3 3 3 3 -5 5 0
+                      0 5 -5 3 3 3 3 -5 5 0
+                      0 20 -5 15 3 3 15 -5 20 0
+                      0 -20 -40 -5 -5 -5 -40 -20 0
+                      0 120 -20 20 5 5 20 -20 120 0
+                      0 0 0 0 0 0 0 0 0 0))
 
 
+(define (weighted-squares player board)
+  (let ((opp (opponent player)) (l-board (vector->list board)) (l-weights (vector->list *weights*)))
+    (let loop ((lst all-squares) (score 0))
+      (if (null? lst) score
+          (loop (cdr lst) (cond ((equal? (list-ref l-board (car lst)) player)
+                                 (+ score (list-ref l-weights (car lst))))
+                                ((equal? (list-ref  l-board (car lst)) opp)
+                                 (- score (list-ref l-weights (car lst))))
+                                (else score)))))))
 
+#|
+;cl
+(defun  weighted-squares (player board)
+  (let ((opp (opponent plyaer)))
+    (loop for i in all-squares
+          when (eql (bref board i) player)
+          sum (aref *weights* i)
+          when (eql (bref board i) opp)
+          sum (- (aref *weights* i)))))
+|#
+
+;(weighted-squares 'black data)
 
 
 #|
-(define (count-difference player board)
-  ; スコアの差を計算するコードをここに記述
-  )
-
-(define (legal-moves player board)
-  ; 合法な手を取得するコードをここに記述
-  )
-
-(define (make-move move player board)
-  ; 手を適用して新しいボードを生成するコードをここに記述
-  )
-
-(define (copy-board board)
-  ; ボードのコピーを生成するコードをここに記述
-  )
-
-(define (max lst)
-  (apply max lst))
-
-(define (find-position item lst)
-  (let loop ((lst lst)
-             (index 0))
-    (cond ((null? lst) #f)
-          ((equal? item (car lst)) index)
-          (else (loop (cdr lst) (+ index 1))))))
+;cl
+(defun final-value (player board)
+  (case (signum (count-difference player board))
+    (-1 losing-value)
+    (0 0)
+    (+1 winning-value)))
 |#
 
+(define losing-value 0)
+(define winning-value 0)
+
+(define (signum num)
+  (cond ((positive? num) 1)
+        ((negative? num) -1)
+        (else 0)))
+
+(define (final-value player board)
+  (let ((sig (signum (count-difference player board))))
+  (case sig
+    ((-1) losing-value)
+    ((0) 0)
+    ((1) winning-value))))
+
+    
+
+;(display all-squares)
 
 
+;test
+(define (minimax player board ply eval-fn)
+  (if (= ply 0);最終評価？
+      ;(display "end")
+      (eval-fn player board)
+      (let ((moves (legal-moves player board)));打てる手をリストで返す
+        (if (null? moves);打てる手がもうなくて
+            (if (any-legal-move? (opponent player) board);敵の打つ手があるならば
+                 (minimax (opponent player) board (- ply 1) eval-fn);敵側でMinimax
+                (final-value player board));敵も打つ手が無いなら最終評価
+              (let loop ((moves moves) (best-move 0) (best-val 0));打てる手がまだあるなら
+                (if (null? moves) best-move
+                  ;  (values best-val best-move);最適の値を返す                         
+                      (let* ((board2 (make-move (car moves) player board))
+                             (val (minimax (opponent player) board2 (- ply 1) eval-fn)))
+                        (loop (cdr moves) (if (> val best-val) val best-val) (if (> val best-val) (car moves) best-move)))))))))
+     
+(minimax 'black data 3 count-difference)
 
 
+     #|                 
+;cl        
+(defun minimax (player board ply eval-fn)
+  (if (= ply 0)
+      (funcall eval-fn player board) ; プレイアウトの深さが0に達したら評価関数を呼び出して評価値を返す
+      (let ((moves (legal-moves player board))) ; プレイヤーが可能な手を取得
+        (if (null moves) ; プレイヤーが手を打つことができない場合
+            (if (any-legal-move? (opponent player) board) ; 相手プレイヤーが打てる手があるかをチェック
+                (- (minimax (opponent player) board (- ply 1) eval-fn)) ; 相手プレイヤーの手番に切り替えて再帰的に探索
+                (final-value player board)) ; 相手プレイヤーも手を打てない場合、ゲームの最終評価値を計算
+            (let ((best-move nil) (best-val nil))
+              (dolist (move moves) ; プレイヤーが可能な手をループ
+                (let* ((board2 (make-move move player (copy-board board))) ; 手を打った後の新しいボードを生成
+                       (val (- (minimax (opponent player) board2 (- ply 1) eval-fn)))) ; 相手プレイヤーの手番に切り替えて再帰的に探索
+                  (when (or (null best-val) ; 最良の手を見つけた場合、best-moveとbest-valを更新
+                            (> val best-val))
+                    (setf best-val val)
+                    (setf best-move move))))
+              (values best-val best-move)))))) ; 最適な手の評価値と手を返す
 
-
-
+|#
 
 
 
