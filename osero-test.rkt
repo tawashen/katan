@@ -38,10 +38,10 @@
                      empty empty empty empty empty empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
-                     empty empty empty white black empty empty empty outer outer
-                     empty empty empty black white empty empty empty outer outer
-                     empty empty empty empty white empty empty empty outer outer
-                     empty empty black white empty empty empty empty outer outer
+                     empty empty empty black black empty empty empty outer outer
+                     empty empty empty black black empty empty empty outer outer
+                     empty empty empty empty black empty empty empty outer outer
+                     empty empty black black white empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
                      outer outer outer outer outer outer outer outer outer))
 
@@ -58,7 +58,7 @@
       (display (format "~a " (format-piece (vector-ref data (+ col (* row 10)))))))
     (newline)))
 
-;(print-chessboard data)
+(print-chessboard data)
 
 
 (define all-directions '(-11 -10 -9 -1 1 9 10 11))
@@ -375,23 +375,24 @@
 ;(display all-squares)
 
 
+
 ;test
 (define (minimax player board ply eval-fn)
-  (if (= ply 0);最終評価？
-      (eval-fn player board)
+  (if (= ply 0);深度ゼロなら
+      (eval-fn player board);今回はプレイヤーの枚数を返す
       (let ((moves (legal-moves player board)));打てる手をリストで返す
         (if (null? moves);打てる手がもうなくて
             (if (any-legal-move? (opponent player) board);敵の打つ手があるならば
-                 (minimax (opponent player) board (- ply 1) eval-fn);敵側でMinimax
-                (final-value player board));敵も打つ手が無いなら最終評価
+                 (- (minimax (opponent player) board (- ply 1) eval-fn));敵側でMinimax
+                (final-value player board));敵も打つ手が無いなら最終評価というか勝ち負け
               (let loop ((moves moves) (best-move 0) (best-val 0));打てる手がまだあるなら
                 (if (null? moves) best-move
                   ;  (values best-val best-move);最適の値を返す                         
                       (let* ((board2 (make-move (car moves) player board))
-                             (val (minimax (opponent player) board2 (- ply 1) eval-fn)))
+                             (val (- (minimax (opponent player) board2 (- ply 1) eval-fn))))
                         (loop (cdr moves) (if (> val best-val) val best-val) (if (> val best-val) (car moves) best-move)))))))))
      
-(minimax 'black data 3 count-difference)
+(minimax 'black data 0 count-difference)
 
 
      #|                 
@@ -416,5 +417,23 @@
 
 |#
 
+(define (minimax-gpt player board ply eval-fn)
+  (if (= ply 0)
+      (eval-fn player board)
+      (let ((moves (legal-moves player board)))
+        (if (null? moves)
+            (if (any-legal-move? (opponent player) board)
+                (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
+                (final-value player board))
+            (let loop ((moves moves) (best-move '()) (best-val '()))
+              (if (null? moves)
+                  best-move
+                  (let* ((board2 (make-move (car moves) player board))
+                         (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
+                    (if (or (null? best-val) (> val best-val))
+                        (loop (cdr moves) val  (car moves))
+                        (loop (cdr moves) best-val best-move)))))))))
+
+(minimax-gpt 'black data 0 count-difference)
 
 
