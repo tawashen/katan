@@ -58,7 +58,7 @@
       (display (format "~a " (format-piece (vector-ref data (+ col (* row 10)))))))
     (newline)))
 
-(print-chessboard data)
+;(print-chessboard data)
 
 
 (define all-directions '(-11 -10 -9 -1 1 9 10 11))
@@ -392,7 +392,7 @@
                              (val (- (minimax (opponent player) board2 (- ply 1) eval-fn))))
                         (loop (cdr moves) (if (> val best-val) val best-val) (if (> val best-val) (car moves) best-move)))))))))
      
-(minimax 'black data 0 count-difference)
+;(minimax 'black data 0 count-difference)
 
 
      #|                 
@@ -431,9 +431,23 @@
                   (let* ((board2 (make-move (car moves) player board))
                          (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
                     (if (or (null? best-val) (> val best-val))
-                        (loop (cdr moves) val  (car moves))
+                        (loop (cdr moves) val (car moves))
                         (loop (cdr moves) best-val best-move)))))))))
 
-(minimax-gpt 'black data 0 count-difference)
+;(minimax-gpt 'black data 0 count-difference)
 
+#|
+;CL
+(defun mimimax-searcher (ply eval-fn)
+  (lambda (player board)
+    (multiple-value-bind (value move)
+                         (minimax player board ply eval-fn)
+                         (declare (ignore value))
+                         move)))
+|#
 
+(define (minimax-searcher ply eval-fn)
+  (lambda (player board) (minimax-gpt player board ply eval-fn)))
+   ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
+
+(othello (minimax-searcher 3 count-difference) (maximizer count-difference))
