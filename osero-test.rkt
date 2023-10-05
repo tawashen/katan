@@ -418,21 +418,22 @@
 |#
 
 (define (minimax-gpt player board ply eval-fn)
-  (if (= ply 0)
+  (if (= ply 0);ここは独立する関数を呼び出して飛ばすべき
       (eval-fn player board)
       (let ((moves (legal-moves player board)))
         (if (null? moves)
             (if (any-legal-move? (opponent player) board)
                 (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
-                (final-value player board))
+                (display "end"))
+             ;   (final-value player board));ここも外部関数を呼び出して独立させるべき
             (let loop ((moves moves) (best-move '()) (best-val '()))
               (if (null? moves)
                   best-move
                   (let* ((board2 (make-move (car moves) player board))
                          (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
                     (if (or (null? best-val) (> val best-val))
-                        (loop (cdr moves) val (car moves))
-                        (loop (cdr moves) best-val best-move)))))))))
+                        (loop (cdr moves) (car moves) val)
+                        (loop (cdr moves) best-move best-val)))))))))
 
 ;(minimax-gpt 'black data 0 count-difference)
 
@@ -450,4 +451,4 @@
   (lambda (player board) (minimax-gpt player board ply eval-fn)))
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
-(othello (minimax-searcher 3 count-difference) (maximizer count-difference))
+(othello (minimax-searcher 3 count-difference) human)
