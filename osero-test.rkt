@@ -155,9 +155,9 @@
   (let ((opp (opponent previous-player)));
     (cond ((any-legal-move? opp board) opp);敵が一つでも指せる場所がある場合、敵を返す
           ((any-legal-move? previous-player board);自分が一つでも指せれば
-           (when print;そしてPrintが#tだったら
-             (display (format "~a has no moves and must pass.~%"
-             opp)));メッセージを表示
+       ;    (when print;そしてPrintが#tだったら
+         ;    (display (format "~a has no moves and must pass.~%"
+         ;    opp)));メッセージを表示
            previous-player);自分を返す
           (else #f))))
 
@@ -216,13 +216,14 @@
 
 
 (define (othello bl-strategy wh-strategy
-                 #:optional (print #t))
-    (let loop ((player 'black) (board (initial-board)) (strategy bl-strategy))
+                ; #:optional
+                 (print #t))
+    (let loop ((player 'black)  (strategy bl-strategy) (board (initial-board)))
       (if (not player) (display "end") ;void;(end board)
           (loop
-           (next-to-play board player print);ループするごとにプレイヤー入れ替え
-           (get-move strategy player board print);新しいボードを返す
-           (if (equal? player 'black) bl-strategy wh-strategy)))));ストラテジーをプレイヤーに従って
+           (next-to-play board player print);ループするごとにプレイヤー入れ替え           
+           (if (equal? player 'black) bl-strategy wh-strategy)
+           (get-move (if (equal? player 'black) bl-strategy wh-strategy) player board print)))));ストラテジーをプレイヤーに従って
 
 
 
@@ -451,4 +452,4 @@
   (lambda (player board) (minimax-gpt player board ply eval-fn)))
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
-(othello (minimax-searcher 3 count-difference) human)
+(othello human (minimax-searcher 3 count-difference))
