@@ -425,8 +425,8 @@
         (if (null? moves)
             (if (any-legal-move? (opponent player) board)
                 (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
-                (display "end"))
-             ;   (final-value player board));ここも外部関数を呼び出して独立させるべき
+               ; (display "end"))
+               (final-value player board));ここも外部関数を呼び出して独立させるべき
             (let loop ((moves moves) (best-move '()) (best-val '()))
               (if (null? moves)
                   best-move
@@ -452,4 +452,7 @@
   (lambda (player board) (minimax-gpt player board ply eval-fn)))
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
-(othello human (minimax-searcher 3 count-difference))
+;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
+(othello random-strategy (minimax-searcher 3 count-difference))
+;(othello random-strategy (maximizer count-difference)) ;ok
+
