@@ -175,7 +175,7 @@
 (define (get-move strategy player board print);->board
   (when print (print-chessboard board))
   (let ((move (strategy player board)));strategyで出されたマス目をmoveに束縛
-    (cond ((not move) (end board))
+    (cond ;((zero? move) (display "end"))
       ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
            (when print (display (format "~a moves to ~a.~%" player move)));Printが真なら表示
            (make-move move player board));
@@ -386,13 +386,17 @@
             (if (any-legal-move? (opponent player) board);敵の打つ手があるならば
                  (- (minimax (opponent player) board (- ply 1) eval-fn));敵側でMinimax
                 (final-value player board));敵も打つ手が無いなら最終評価というか勝ち負け
+            
               (let loop ((moves moves) (best-move 0) (best-val 0));打てる手がまだあるなら
                 (if (null? moves) best-move
                   ;  (values best-val best-move);最適の値を返す                         
                       (let* ((board2 (make-move (car moves) player board))
                              (val (- (minimax (opponent player) board2 (- ply 1) eval-fn))))
                         (loop (cdr moves) (if (> val best-val) val best-val) (if (> val best-val) (car moves) best-move)))))))))
-     
+
+
+
+
 ;(minimax 'black data 0 count-difference)
 
 
@@ -418,6 +422,7 @@
 
 |#
 
+#|
 (define (minimax-gpt player board ply eval-fn)
   (if (= ply 0);ここが終着点で枚数を返す
       (eval-fn player board)
@@ -436,6 +441,24 @@
                     (if (or (null? best-val) (> val best-val))
                         (loop (cdr moves) (car moves) val)
                         (loop (cdr moves) best-move best-val)))))))))
+|#
+
+(define (minimax-gpt player board ply eval-fn)
+  (if (= ply 0)
+      (eval-fn player board)
+      (let ((moves (legal-moves player board)))
+        (if (null? moves)
+            (if (any-legal-move? (opponent player) board)
+                (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
+                (final-value player board))
+            (let loop ((moves moves) (best-move #f) (best-val -inf.0))
+              (if (null? moves) best-move
+                  (let* ((board2 (make-move (car moves) player board))
+                         (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
+                    (if (> val best-val)
+                        (loop (cdr moves) (car moves) val)
+                        (loop (cdr moves) best-move best-val)))))))))
+
 
 ;(minimax-gpt 'black data 3 count-difference)
 ;(count-difference 'black data)
@@ -455,6 +478,6 @@
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
-;(othello random-strategy (minimax-searcher 3 count-difference))
-(othello random-strategy (maximizer count-difference)) ;ok
+(othello random-strategy (minimax-searcher 3 count-difference))
+;(othello random-strategy (maximizer count-difference)) ;ok
 
