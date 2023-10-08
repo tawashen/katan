@@ -423,20 +423,21 @@
       (eval-fn player board)
       (let ((moves (legal-moves player board)))
         (if (null? moves);もうその深度で他に手がないか？
-            (if (any-legal-move? (opponent player) board);
-                (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
+            (if (any-legal-move? (opponent player) board)
+                 (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
                ; (display "end"))
                (final-value player board));外部関数を呼び出して独立させるべき？
+                 ; #f)
+                ; (end board))
             (let loop ((moves moves) (best-move '()) (best-val '()));同じ深度で手があれば以下実行
-              (if (null? moves)
-                  best-move
+              (if (null? moves) best-move
                   (let* ((board2 (make-move (car moves) player board))
                          (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
                     (if (or (null? best-val) (> val best-val))
                         (loop (cdr moves) (car moves) val)
                         (loop (cdr moves) best-move best-val)))))))))
 
-;(minimax-gpt 'black data 0 count-difference)
+;(minimax-gpt 'black data 3 count-difference)
 ;(count-difference 'black data)
 
 #|
@@ -455,5 +456,5 @@
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
 ;(othello random-strategy (minimax-searcher 3 count-difference))
-;(othello random-strategy (maximizer count-difference)) ;ok
+(othello random-strategy (maximizer count-difference)) ;ok
 
