@@ -427,7 +427,7 @@
                 (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
                ; (display "end"))
                (final-value player board));外部関数を呼び出して独立させるべき？
-            (let loop ((moves moves) (best-move '()) (best-val '()));同じ深度で手があれば以下実行
+            (let loop ((moves moves) (best-move #f) (best-val -100));同じ深度で手があれば以下実行
               (if (null? moves)
                   best-move
                   (let* ((board2 (make-move (car moves) player board))
@@ -455,5 +455,5 @@
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
 ;(othello random-strategy (minimax-searcher 3 count-difference))
-;(othello random-strategy (maximizer count-difference)) ;ok
+;(othello human (maximizer count-difference)) ;ok
 
