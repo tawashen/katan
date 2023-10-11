@@ -218,8 +218,11 @@
 (define (othello bl-strategy wh-strategy
                 ; #:optional
                  (print #t))
-    (let loop ((player 'black)  (strategy bl-strategy) (board (initial-board)))
-      (if (not player) (display "end") ;void;(end board)
+    (let loop ((player 'black) (strategy bl-strategy) (board (initial-board)))
+      (if  (not player)
+            ;  (not (strategy player board)))
+
+              (display "end") ;void;(end board)
           (loop
            (next-to-play board player print);ループするごとにプレイヤー入れ替え           
            (if (equal? player 'black) bl-strategy wh-strategy)
@@ -354,22 +357,17 @@
     (-1 losing-value)
     (0 0)
     (+1 winning-value)))
+
+(defconstant winning-value most-positive-fixnum)
+(defconstant losing-value most-negative-fixnum)
+(defun final-value (player board)
+  (case (signum (count-difference player board))
+    (-1 losing-value)
+    (0 0)
+    (+1 winning-value)))
 |#
 
-(define losing-value 0)
-(define winning-value 0)
 
-(define (signum num)
-  (cond ((positive? num) 1)
-        ((negative? num) -1)
-        (else 0)))
-
-(define (final-value player board)
-  (let ((sig (signum (count-difference player board))))
-  (case sig
-    ((-1) losing-value)
-    ((0) 0)
-    ((1) winning-value))))
 
     
 
@@ -443,6 +441,38 @@
                         (loop (cdr moves) best-move best-val)))))))))
 |#
 
+
+(define losing-value -inf.0)
+(define winning-value +inf.0)
+
+(define (signum num)
+  (cond ((positive? num) 1)
+        ((negative? num) -1)
+        (else 0)))
+
+(define (final-value player board)
+  (let ((sig (signum (count-difference player board))))
+  (case sig
+    ((-1) losing-value)
+    ((0) 0)
+    ((1) winning-value))))
+#|
+(define (minimax-gpt player board ply eval-fn)
+  (if (= ply 0)
+      (eval-fn player board)
+      (let ((moves (legal-moves player board)))
+        (if (null? moves)
+            (if (any-legal-move? (opponent player) board)
+                (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
+                (final-value player board))
+            (let loop ((moves moves) (best-move +inf.0) (best-val -inf.0))
+              (if (null? moves) best-move
+                  (let* ((board2 (make-move (car moves) player board))
+                         (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
+                    (if (> val best-val)
+                        (loop (cdr moves) (car moves) val)
+                        (loop (cdr moves) best-move best-val)))))))))
+|#
 (define (minimax-gpt player board ply eval-fn)
   (if (= ply 0)
       (eval-fn player board)
@@ -452,7 +482,8 @@
                 (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
                 (final-value player board))
             (let loop ((moves moves) (best-move #f) (best-val -inf.0))
-              (if (null? moves) best-move
+              (if (null? moves)
+                  best-move
                   (let* ((board2 (make-move (car moves) player board))
                          (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
                     (if (> val best-val)
@@ -478,6 +509,6 @@
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
-(othello random-strategy (minimax-searcher 3 count-difference))
+;(othello random-strategy (minimax-searcher 3 count-difference))
 ;(othello random-strategy (maximizer count-difference)) ;ok
 
