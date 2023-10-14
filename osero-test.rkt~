@@ -38,10 +38,10 @@
                      empty empty empty empty empty empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
-                     empty empty empty white black empty empty empty outer outer
-                     empty empty empty black white empty empty empty outer outer
-                     empty empty empty empty white empty empty empty outer outer
-                     empty empty black white empty empty empty empty outer outer
+                     empty empty empty black black empty empty empty outer outer
+                     empty empty empty black black empty empty empty outer outer
+                     empty empty empty empty black empty empty empty outer outer
+                     empty empty black black white empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
                      outer outer outer outer outer outer outer outer outer))
 
@@ -155,9 +155,9 @@
   (let ((opp (opponent previous-player)));
     (cond ((any-legal-move? opp board) opp);敵が一つでも指せる場所がある場合、敵を返す
           ((any-legal-move? previous-player board);自分が一つでも指せれば
-           (when print;そしてPrintが#tだったら
-             (display (format "~a has no moves and must pass.~%"
-             opp)));メッセージを表示
+       ;    (when print;そしてPrintが#tだったら
+         ;    (display (format "~a has no moves and must pass.~%"
+         ;    opp)));メッセージを表示
            previous-player);自分を返す
           (else #f))))
 
@@ -216,13 +216,14 @@
 
 
 (define (othello bl-strategy wh-strategy
-                 #:optional (print #t))
-    (let loop ((player 'black) (board (initial-board)) (strategy bl-strategy))
+                ; #:optional
+                 (print #t))
+    (let loop ((player 'black)  (strategy bl-strategy) (board (initial-board)))
       (if (not player) (display "end") ;void;(end board)
           (loop
-           (next-to-play board player print);ループするごとにプレイヤー入れ替え
-           (get-move strategy player board print);新しいボードを返す
-           (if (equal? player 'black) bl-strategy wh-strategy)))));ストラテジーをプレイヤーに従って
+           (next-to-play board player print);ループするごとにプレイヤー入れ替え           
+           (if (equal? player 'black) bl-strategy wh-strategy)
+           (get-move (if (equal? player 'black) bl-strategy wh-strategy) player board print)))));ストラテジーをプレイヤーに従って
 
 
 
@@ -375,24 +376,24 @@
 ;(display all-squares)
 
 
+
 ;test
 (define (minimax player board ply eval-fn)
-  (if (= ply 0);最終評価？
-      ;(display "end")
-      (eval-fn player board)
+  (if (= ply 0);深度ゼロなら
+      (eval-fn player board);今回はプレイヤーの枚数を返す
       (let ((moves (legal-moves player board)));打てる手をリストで返す
         (if (null? moves);打てる手がもうなくて
             (if (any-legal-move? (opponent player) board);敵の打つ手があるならば
-                 (minimax (opponent player) board (- ply 1) eval-fn);敵側でMinimax
-                (final-value player board));敵も打つ手が無いなら最終評価
+                 (- (minimax (opponent player) board (- ply 1) eval-fn));敵側でMinimax
+                (final-value player board));敵も打つ手が無いなら最終評価というか勝ち負け
               (let loop ((moves moves) (best-move 0) (best-val 0));打てる手がまだあるなら
                 (if (null? moves) best-move
                   ;  (values best-val best-move);最適の値を返す                         
                       (let* ((board2 (make-move (car moves) player board))
-                             (val (minimax (opponent player) board2 (- ply 1) eval-fn)))
+                             (val (- (minimax (opponent player) board2 (- ply 1) eval-fn))))
                         (loop (cdr moves) (if (> val best-val) val best-val) (if (> val best-val) (car moves) best-move)))))))))
      
-(minimax 'black data 3 count-difference)
+;(minimax 'black data 0 count-difference)
 
 
      #|                 
@@ -417,5 +418,42 @@
 
 |#
 
+(define (minimax-gpt player board ply eval-fn)
+  (if (= ply 0);ここが終着点で枚数を返す
+      (eval-fn player board)
+      (let ((moves (legal-moves player board)))
+        (if (null? moves);もうその深度で他に手がないか？
+            (if (any-legal-move? (opponent player) board);
+                (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
+               ; (display "end"))
+               (final-value player board));外部関数を呼び出して独立させるべき？
+            (let loop ((moves moves) (best-move #f) (best-val -100));同じ深度で手があれば以下実行
+              (if (null? moves)
+                  best-move
+                  (let* ((board2 (make-move (car moves) player board))
+                         (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
+                    (if (or (null? best-val) (> val best-val))
+                        (loop (cdr moves) (car moves) val)
+                        (loop (cdr moves) best-move best-val)))))))))
 
+;(minimax-gpt 'black data 0 count-difference)
+;(count-difference 'black data)
 
+#|
+;CL
+(defun mimimax-searcher (ply eval-fn)
+  (lambda (player board)
+    (multiple-value-bind (value move)
+                         (minimax player board ply eval-fn)
+                         (declare (ignore value))
+                         move)))
+|#
+
+(define (minimax-searcher ply eval-fn)
+  (lambda (player board) (minimax-gpt player board ply eval-fn)))
+   ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
+
+;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
+;(othello random-strategy (minimax-searcher 3 count-difference))
+;(othello random-strategy (maximizer count-difference)) ;ok
+;(othello human (maximizer count-difference))

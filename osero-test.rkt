@@ -175,7 +175,7 @@
 (define (get-move strategy player board print);->board
   (when print (print-chessboard board))
   (let ((move (strategy player board)));strategyで出されたマス目をmoveに束縛
-    (cond ((not move) (end board))
+    (cond ((or (not move) (zero? move)) (end board))
       ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
            (when print (display (format "~a moves to ~a.~%" player move)));Printが真なら表示
            (make-move move player board));
@@ -219,7 +219,8 @@
                 ; #:optional
                  (print #t))
     (let loop ((player 'black)  (strategy bl-strategy) (board (initial-board)))
-      (if (not player) (display "end") ;void;(end board)
+      (if (not player) (display "end")
+         ; (end board)
           (loop
            (next-to-play board player print);ループするごとにプレイヤー入れ替え           
            (if (equal? player 'black) bl-strategy wh-strategy)
@@ -454,6 +455,6 @@
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
-;(othello random-strategy (minimax-searcher 3 count-difference))
-;(othello human (maximizer count-difference)) ;ok
-
+(othello random-strategy (minimax-searcher 3 count-difference))
+;(othello random-strategy (maximizer count-difference)) ;ok
+;(othello human (maximizer count-difference))
