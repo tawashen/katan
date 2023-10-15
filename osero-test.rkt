@@ -455,6 +455,43 @@
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
-(othello random-strategy (minimax-searcher 3 count-difference))
+;(othello random-strategy (minimax-searcher 3 count-difference))
 ;(othello random-strategy (maximizer count-difference)) ;ok
 ;(othello human (maximizer count-difference))
+
+
+;cl
+(defun alpha-beta (player board achievable cutoff ply eval-fn)
+  (if (= ply 0)
+      (funcall eval-fn player board)
+      (let ((moves (legal-moves player board)))
+        (if (null? moves)
+            (if (any-legal-move? (opponent player) board)
+                (- (alpha-beta (opponent plyaer) board
+                               (- cutoff) (- achievable)
+                               (- ply 1) eval-fn))
+                (final-value player board))
+            (let ((best-move (first moves)))
+              (loop for move in moves do
+                    (let* ((board2 (make-move move player (copy-board board)))
+                           (val (- (alpha-beta (opponent plyaer) borad2 (- cutoff) (- achievable) (-ply 1) eval-fn))))
+                      (when (> val achivable)
+                        (setf achievable val)
+                        (setf best-move move)))
+                    until (>= achievable cutoff))
+              (values achievable best-move))))))
+
+(define (alpha-beta player board achievable cutoff ply eval-fn)
+  
+
+;cl
+(defun alhpa-beta-searcher (depth eval-fn)
+  #'(lambda (player board)
+      (multiple-value-bind (value move)
+                           (alpha-beta player board losing-value winning-value depth eval-fn)
+                           (declare (ignore value))
+                           move)))
+
+
+(define tawa (
+
