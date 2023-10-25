@@ -394,13 +394,18 @@
                              (val (- (minimax (opponent player) board2 (- ply 1) eval-fn))))
                         (loop (cdr moves) (if (> val best-val) val best-val) (if (> val best-val) (car moves) best-move)))))))))
 
+#|
 (define (minimax-sellf board ply eval-fn)
-  (cond ((= ply 0)(eval-fn player board))
-        ((and
-          (and (any-legal-move? (opponent plyaer) board) (any-legal-move? player board))
-          (positive? (eval-fn player board)))
-         
+  (if (= ply 0)
+      (eval-fn player board)
       (let ((moves (legal-moves plyaer board)))
+        (cond
+          ((and
+           (and (any-legal-move? (opponent plyaer) board) (any-legal-move? player board))
+           (positive? (eval-fn player board)))
+            (car 
+ |#        
+ 
         
 ;(minimax 'black data 0 count-difference) 
 
@@ -501,5 +506,4 @@
                            move)))
 
 
-(define tawa (
 
