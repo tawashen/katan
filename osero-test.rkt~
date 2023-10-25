@@ -175,7 +175,7 @@
 (define (get-move strategy player board print);->board
   (when print (print-chessboard board))
   (let ((move (strategy player board)));strategyで出されたマス目をmoveに束縛
-    (cond ((not move) (end board))
+    (cond ((or (not move) (zero? move)) (end board))
       ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
            (when print (display (format "~a moves to ~a.~%" player move)));Printが真なら表示
            (make-move move player board));
@@ -219,7 +219,8 @@
                 ; #:optional
                  (print #t))
     (let loop ((player 'black)  (strategy bl-strategy) (board (initial-board)))
-      (if (not player) (display "end") ;void;(end board)
+      (if (not player) (display "end")
+         ; (end board)
           (loop
            (next-to-play board player print);ループするごとにプレイヤー入れ替え           
            (if (equal? player 'black) bl-strategy wh-strategy)
@@ -457,3 +458,40 @@
 ;(othello random-strategy (minimax-searcher 3 count-difference))
 ;(othello random-strategy (maximizer count-difference)) ;ok
 ;(othello human (maximizer count-difference))
+
+
+;cl
+(defun alpha-beta (player board achievable cutoff ply eval-fn)
+  (if (= ply 0)
+      (funcall eval-fn player board)
+      (let ((moves (legal-moves player board)))
+        (if (null? moves)
+            (if (any-legal-move? (opponent player) board)
+                (- (alpha-beta (opponent plyaer) board
+                               (- cutoff) (- achievable)
+                               (- ply 1) eval-fn))
+                (final-value player board))
+            (let ((best-move (first moves)))
+              (loop for move in moves do
+                    (let* ((board2 (make-move move player (copy-board board)))
+                           (val (- (alpha-beta (opponent plyaer) borad2 (- cutoff) (- achievable) (-ply 1) eval-fn))))
+                      (when (> val achivable)
+                        (setf achievable val)
+                        (setf best-move move)))
+                    until (>= achievable cutoff))
+              (values achievable best-move))))))
+
+(define (alpha-beta player board achievable cutoff ply eval-fn)
+  
+
+;cl
+(defun alhpa-beta-searcher (depth eval-fn)
+  #'(lambda (player board)
+      (multiple-value-bind (value move)
+                           (alpha-beta player board losing-value winning-value depth eval-fn)
+                           (declare (ignore value))
+                           move)))
+
+
+(define tawa (
+
