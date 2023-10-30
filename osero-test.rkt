@@ -446,6 +446,8 @@
                   best-move
                   (let* ((board2 (make-move (car moves) player board))
                          (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
+                    (display moves) (display " ") (display (car moves))
+                    (display " ") (display best-move) (display " ") (display val) (display "/")
                     (if (or (null? best-val) (> val best-val))
                         (loop (cdr moves) (car moves) val)
                         (loop (cdr moves) best-move best-val)))))))))
@@ -468,11 +470,11 @@
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
-;(othello random-strategy (minimax-searcher 3 count-difference))
+(othello random-strategy (minimax-searcher 3 count-difference))
 ;(othello random-strategy (maximizer count-difference)) ;ok
 ;(othello human (maximizer count-difference))
 
-
+#|
 ;cl
 (defun alpha-beta (player board achievable cutoff ply eval-fn)
   (if (= ply 0)
@@ -505,5 +507,5 @@
                            (declare (ignore value))
                            move)))
 
-
+|#
 
