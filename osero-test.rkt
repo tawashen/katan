@@ -175,7 +175,7 @@
 (define (get-move strategy player board print);->board
   (when print (print-chessboard board))
   (let ((move (strategy player board)));strategyで出されたマス目をmoveに束縛
-    (cond ((or (not move) (zero? move)) (end board))
+    (cond ((or (not move) (= 10000 move) (= -10000 move)) (end board))
       ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
            (when print (display (format "~a moves to ~a.~%" player move)));Printが真なら表示
            (make-move move player board));
@@ -357,8 +357,8 @@
     (+1 winning-value)))
 |#
 
-(define losing-value 0)
-(define winning-value 0)
+(define losing-value -10000)
+(define winning-value 10000)
 
 (define (signum num)
   (cond ((positive? num) 1)
@@ -448,6 +448,7 @@
                          (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
                     (display moves) (display " ") (display (car moves))
                     (display " ") (display best-move) (display " ") (display val) (display "/")
+                    (newline) (print-chessboard board) (newline) (print-chessboard board2)                    
                     (if (or (null? best-val) (> val best-val))
                         (loop (cdr moves) (car moves) val)
                         (loop (cdr moves) best-move best-val)))))))))
@@ -470,11 +471,11 @@
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
-(othello random-strategy (minimax-searcher 3 count-difference))
+(othello random-strategy (minimax-searcher 2 count-difference))
 ;(othello random-strategy (maximizer count-difference)) ;ok
 ;(othello human (maximizer count-difference))
 
-#|
+#|aaaaちちちちaaaaaaちちちちaaaa
 ;cl
 (defun alpha-beta (player board achievable cutoff ply eval-fn)
   (if (= ply 0)
