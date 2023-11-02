@@ -453,6 +453,9 @@
                         (loop (cdr moves) (car moves) val)
                         (loop (cdr moves) best-move best-val)))))))))
 
+(define (e-minimax player board ply eval-fn)
+  
+
 ;(minimax-gpt 'black data 0 count-difference)
 ;(count-difference 'black data)
 
