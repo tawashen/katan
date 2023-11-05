@@ -53,6 +53,7 @@
     [(eq? piece 'black) "B"]))
 
 (define (print-chessboard data)
+  (display (format "B:~a W:~a~%" (count-difference 'black data) (count-difference 'white data)))
   (for ([row (in-range 10)])
     (for ([col (in-range 10)])
       (display (format "~a " (format-piece (vector-ref data (+ col (* row 10)))))))
@@ -169,7 +170,7 @@
   
 (define (end board)
   (let ((black (win-lose-count 'black board)) (white (win-lose-count 'white board)))
- (display (format "black:~a white:~a" black white)) board))
+ (display (format "black:~a white:~a~%" black white)) board))
 
 ;ok?
 (define (get-move strategy player board print);->board
@@ -410,7 +411,7 @@
 ;(minimax 'black data 0 count-difference) 
 
 
-     #|                 
+           #|          
 ;cl        
 (defun minimax (player board ply eval-fn)
   (if (= ply 0)
@@ -420,7 +421,7 @@
             (if (any-legal-move? (opponent player) board) ; 相手プレイヤーが打てる手があるかをチェック
                 (- (minimax (opponent player) board (- ply 1) eval-fn)) ; 相手プレイヤーの手番に切り替えて再帰的に探索
                 (final-value player board)) ; 相手プレイヤーも手を打てない場合、ゲームの最終評価値を計算
-            (let ((best-move nil) (best-val nil))
+            (let ((best-move nil) (best-val nil));手がある場合、最終的にはValues best-val best-move
               (dolist (move moves) ; プレイヤーが可能な手をループ
                 (let* ((board2 (make-move move player (copy-board board))) ; 手を打った後の新しいボードを生成
                        (val (- (minimax (opponent player) board2 (- ply 1) eval-fn)))) ; 相手プレイヤーの手番に切り替えて再帰的に探索
@@ -429,31 +430,36 @@
                     (setf best-val val)
                     (setf best-move move))))
               (values best-val best-move)))))) ; 最適な手の評価値と手を返す
-
 |#
+
+
 
 (define (minimax-gpt player board ply eval-fn)
   (if (= ply 0);ここが終着点で枚数を返す
       (eval-fn player board)
       (let ((moves (legal-moves player board)))
         (if (null? moves);もうその深度で他に手がないか？
-            (if (any-legal-move? (opponent player) board);
-                (- (minimax-gpt (opponent player) board (- ply 1) eval-fn))
+            (if (any-legal-move? (opponent player) board);敵も手がないか？
+                (minimax-gpt (opponent player) board (- ply 1) eval-fn)
                ; (display "end"))
                (final-value player board));外部関数を呼び出して独立させるべき？
-            (let loop ((moves moves) (best-move #f) (best-val -100));同じ深度で手があれば以下実行
+            (let loop ((moves moves) (best-move '()) (best-val -100));同じ深度で手があれば以下実行
               (if (null? moves)
                   best-move
                   (let* ((board2 (make-move (car moves) player board))
-                         (val (- (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))))
-                    (display moves) (display " ") (display (car moves))
-                    (display " ") (display best-move) (display " ") (display val) (display "/")
+                         (val (minimax-gpt (opponent player) board2 (- ply 1) eval-fn)))
+                   (newline) (display (format "moves:~a" moves)) (display " ") (display (format "move:~a"(car moves)))
+                    (display " ") (display (format "B-move:~a" best-move)) (display " ") (display (format "val:~a" val))
+                    (display " ") (display (format "B-val:~a" best-val))
                     (newline) (print-chessboard board) (newline) (print-chessboard board2)                    
                     (if (or (null? best-val) (> val best-val))
                         (loop (cdr moves) (car moves) val)
                         (loop (cdr moves) best-move best-val)))))))))
 
-(define (e-minimax player board ply eval-fn)
+
+
+;(define (e-minimax player board ply eval-fn)
+  
   
 
 ;(minimax-gpt 'black data 0 count-difference)
