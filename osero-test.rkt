@@ -446,7 +446,7 @@
          ;   (let loop ((moves moves) (best-move '()) (best-val -100));同じ深度で手があれば以下実行
            ;   (if (null? moves)
              ;     best-move
-            (let ((best-move #f) (best-val 0))
+            (let ((best-move #f) (val 0) (best-val 0))
                 
                       (for ((move moves))
                           (let* ((board2 (make-move (car moves) player board))
