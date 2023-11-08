@@ -410,8 +410,8 @@
         
 ;(minimax 'black data 0 count-difference) 
 
-
-           #|          
+#|
+               
 ;cl        
 (defun minimax (player board ply eval-fn)
   (if (= ply 0)
@@ -443,18 +443,24 @@
                 (minimax-gpt (opponent player) board (- ply 1) eval-fn)
                ; (display "end"))
                (final-value player board));外部関数を呼び出して独立させるべき？
-            (let loop ((moves moves) (best-move '()) (best-val -100));同じ深度で手があれば以下実行
-              (if (null? moves)
-                  best-move
-                  (let* ((board2 (make-move (car moves) player board))
-                         (val (minimax-gpt (opponent player) board2 (- ply 1) eval-fn)))
+         ;   (let loop ((moves moves) (best-move '()) (best-val -100));同じ深度で手があれば以下実行
+           ;   (if (null? moves)
+             ;     best-move
+            (let ((best-move #f) (best-val 0))
+                
+                      (for ((move moves))
+                          (let* ((board2 (make-move (car moves) player board))
+                         (val
+                              (minimax-gpt (opponent player) board2 (- ply 1) eval-fn)))
                    (newline) (display (format "moves:~a" moves)) (display " ") (display (format "move:~a"(car moves)))
                     (display " ") (display (format "B-move:~a" best-move)) (display " ") (display (format "val:~a" val))
                     (display " ") (display (format "B-val:~a" best-val))
                     (newline) (print-chessboard board) (newline) (print-chessboard board2)                    
-                    (if (or (null? best-val) (> val best-val))
-                        (loop (cdr moves) (car moves) val)
-                        (loop (cdr moves) best-move best-val)))))))))
+                    (when (or (null? best-val) (> val best-val))
+                      (set! best-move move) (set! best-val val))))
+              best-move)))))
+                     ;   (loop (cdr moves) (car moves) val)
+                     ;   (loop (cdr moves) best-move best-val)))))))))
 
 
 
