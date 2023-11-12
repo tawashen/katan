@@ -450,15 +450,16 @@
                 
                       (for ((move moves))
                           (let* ((board2 (make-move (car moves) player board))
-                         (val
-                              (minimax-gpt (opponent player) board2 (- ply 1) eval-fn)))
+                         (val (if (not best-move) (cdr
+                              (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))
+                                  (car (minimax-gpt (opponent player) board2 (- ply 1) eval-fn)))))
                    (newline) (display (format "moves:~a" moves)) (display " ") (display (format "move:~a"(car moves)))
                     (display " ") (display (format "B-move:~a" best-move)) (display " ") (display (format "val:~a" val))
                     (display " ") (display (format "B-val:~a" best-val))
                     (newline) (print-chessboard board) (newline) (print-chessboard board2)                    
                     (when (or (null? best-val) (> val best-val))
                       (set! best-move move) (set! best-val val))))
-              best-move)))))
+              (cons best-move best-val))))))
                      ;   (loop (cdr moves) (car moves) val)
                      ;   (loop (cdr moves) best-move best-val)))))))))
 
