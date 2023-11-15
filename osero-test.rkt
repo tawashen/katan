@@ -215,7 +215,7 @@
 ;(legal-moves 'black data)
 ;(legal-p 56 'black data)
 
-
+ ;
 (define (othello bl-strategy wh-strategy
                 ; #:optional
                  (print #t))
