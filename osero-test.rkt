@@ -446,20 +446,20 @@
          ;   (let loop ((moves moves) (best-move '()) (best-val -100));同じ深度で手があれば以下実行
            ;   (if (null? moves)
              ;     best-move
-            (let ((best-move #f) (val 0) (best-val 0))
+            (let ((best-val 0) (best-move #f))
                 
                       (for ((move moves))
                           (let* ((board2 (make-move (car moves) player board))
-                         (val (if (not best-move) (cdr
-                              (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))
-                                  (car (minimax-gpt (opponent player) board2 (- ply 1) eval-fn)))))
+                                 (val
+                                  (let-values (((best-v best-m)
+                                               (minimax-gpt (opponent player) board2 (- ply 1) eval-fn))) best-v)))
                    (newline) (display (format "moves:~a" moves)) (display " ") (display (format "move:~a"(car moves)))
                     (display " ") (display (format "B-move:~a" best-move)) (display " ") (display (format "val:~a" val))
                     (display " ") (display (format "B-val:~a" best-val))
                     (newline) (print-chessboard board) (newline) (print-chessboard board2)                    
                     (when (or (null? best-val) (> val best-val))
                       (set! best-move move) (set! best-val val))))
-              (cons best-move best-val))))))
+              (values best-val best-move)))))) ;ここはSearcherに送るだけかな？
                      ;   (loop (cdr moves) (car moves) val)
                      ;   (loop (cdr moves) best-move best-val)))))))))
 
@@ -483,15 +483,15 @@
 |#
 
 (define (minimax-searcher ply eval-fn)
-  (lambda (player board) (minimax-gpt player board ply eval-fn)))
-   ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
+  (lambda (player board) ;(minimax-gpt player board ply eval-fn)
+   (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
 (othello random-strategy (minimax-searcher 2 count-difference))
 ;(othello random-strategy (maximizer count-difference)) ;ok
 ;(othello human (maximizer count-difference))
 
-#|aaaaちちちちaaaaaaちちちちaaaa
+#|
 ;cl
 (defun alpha-beta (player board achievable cutoff ply eval-fn)
   (if (= ply 0)
