@@ -490,7 +490,7 @@
 ;(othello random-strategy (maximizer count-difference)) ;ok
 ;(othello human (maximizer count-difference))
 
-#|aaaaちちちちaaaaaaちちちちaaaa
+#|
 ;cl
 (defun alpha-beta (player board achievable cutoff ply eval-fn)
   (if (= ply 0)
@@ -511,10 +511,50 @@
                         (setf best-move move)))
                     until (>= achievable cutoff))
               (values achievable best-move))))))
+|#
+
 
 (define (alpha-beta player board achievable cutoff ply eval-fn)
+  (if (= ply 0)
+      (eval-fn player board)
+      (let ((moves (legal-moves player board)))
+        (if (null? moves)
+            (if (any-legal-move? (opponent player ) board)
+                (alpha-beta (opponent player) board (- cutoff) (- achievable) (- ply 1) eval-fn)
+                (final-value player board))
+            (let ((best-move (car moves)))
+              (for ((move moves))
+                (let* ((board2 (make-move move player board))
+                       (val (alpha-beta (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
+                  (when (> val achievable) (set! achievable val) (set best-move move))
+                    (when (>= achievable cutoff) (break))) ; ループを終了
+            (values achievable best-move)))))))
   
+(define (alpha-beta-gpt player board achievable cutoff ply eval-fn)
+  (if (= ply 0)
+      (eval-fn player board)
+      (let* ((moves (legal-moves player board))
+             (opponent (if (= player 'max) 'min 'max))
+             (best-move (car moves)))
+        (if (null? moves)
+            (if (any-legal-move? opponent board)
+                (- (alpha-beta-gpt opponent board
+                               (- cutoff) (- achievable)
+                               (- ply 1) eval-fn))
+                (final-value player board))
+            (for ([move moves])
+              (let* ((board2 (make-move move player (copy-board board)))
+                     (val (- (alpha-beta-gpt opponent board2
+                                          (- cutoff) (- achievable)
+                                          (- ply 1) eval-fn))))
+                (when (> val achievable)
+                  (set! achievable val)
+                  (set! best-move move)))
+              (when (>= achievable cutoff)
+                (break))) ; ループを終了
+            (values achievable best-move)))))
 
+                  
 ;cl
 (defun alhpa-beta-searcher (depth eval-fn)
   #'(lambda (player board)
@@ -523,5 +563,5 @@
                            (declare (ignore value))
                            move)))
 
-|#
+
 
