@@ -486,7 +486,7 @@
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
-(othello random-strategy (minimax-searcher 2 count-difference))
+;(othello random-strategy (minimax-searcher 2 count-difference))
 ;(othello random-strategy (maximizer count-difference)) ;ok
 ;(othello human (maximizer count-difference))
 
@@ -526,10 +526,13 @@
               (for ((move moves))
                 (let* ((board2 (make-move move player board))
                        (val (alpha-beta (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
+               ;  (display val) 
                   (when (> val achievable) (set! achievable val) (set best-move move))
-                    (when (>= achievable cutoff) (break))) ; ループを終了
-            (values achievable best-move)))))))
-  
+                    (when (>= achievable cutoff)  (values achievable best-move)) ; ループを終了
+                 ; best-move)))))))
+            (values achievable best-move))))))))
+
+#|
 (define (alpha-beta-gpt player board achievable cutoff ply eval-fn)
   (if (= ply 0)
       (eval-fn player board)
@@ -550,9 +553,9 @@
                 (when (> val achievable)
                   (set! achievable val)
                   (set! best-move move)))
-              (when (>= achievable cutoff)
-                (break))) ; ループを終了
-            (values achievable best-move)))))
+              (when (>= achievable cutoff)  (values achievable best-move))
+             ;   (break))) ; ループを終了
+            (values achievable best-move))))))
 
                   
 ;cl
@@ -562,6 +565,15 @@
                            (alpha-beta player board losing-value winning-value depth eval-fn)
                            (declare (ignore value))
                            move)))
+|#
+
+(define (alpha-beta-searcher depth eval-fn)
+  (lambda (player board)
+    (let-values (((value move)
+                  (alpha-beta player board losing-value winning-value depth eval-fn)))
+      move)))
+
+(othello random-strategy (alpha-beta-searcher 2 count-difference))
 
 
 
