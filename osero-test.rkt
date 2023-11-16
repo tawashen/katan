@@ -511,6 +511,16 @@
                         (setf best-move move)))
                     until (>= achievable cutoff))
               (values achievable best-move))))))
+
+(define (関数名 ...... )
+ (call/cc      ;; 必ず二行目に call/cc を置く
+  (lambda (継続名) ;; 継続名はbreakでもreturnでもcontでもccでもお好きなように
+   関数本体........
+   
+   (継続名 引数) ;; なんかの条件があった時、「結果」を引数として継続名に渡せば大域脱出を行う
+
+  )))
+
 |#
 
 
@@ -526,11 +536,14 @@
               (for ((move moves))
                 (let* ((board2 (make-move move player board))
                        (val (alpha-beta (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
-               ;  (display val) 
+                  (print-chessboard board2) (newline)
+                 (displayln moves) (displayln move) (displayln best-move) (displayln ply) (displayln val) 
                   (when (> val achievable) (set! achievable val) (set best-move move))
                     (when (>= achievable cutoff)  (values achievable best-move)) ; ループを終了
                  ; best-move)))))))
             (values achievable best-move))))))))
+
+
 
 #|
 (define (alpha-beta-gpt player board achievable cutoff ply eval-fn)
