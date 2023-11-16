@@ -540,8 +540,8 @@
                  (displayln moves) (displayln move) (displayln best-move) (displayln ply) (displayln val) 
                   (when (> val achievable) (set! achievable val) (set best-move move))
                     (when (>= achievable cutoff)  (values achievable best-move)) ; ループを終了
-                 ; best-move)))))))
-            (values achievable best-move))))))))
+                  best-move)))))))
+           ; (values achievable best-move))))))))
 
 
 
@@ -582,9 +582,8 @@
 
 (define (alpha-beta-searcher depth eval-fn)
   (lambda (player board)
-    (let-values (((value move)
+   ; (let-values (((value move)
                   (alpha-beta player board losing-value winning-value depth eval-fn)))
-      move)))
 
 (othello random-strategy (alpha-beta-searcher 2 count-difference))
 
