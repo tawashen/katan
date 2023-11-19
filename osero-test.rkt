@@ -512,6 +512,44 @@
                     until (>= achievable cutoff))
               (values achievable best-move))))))
 
+
+(defun alpha-beta (player board achievable cutoff ply eval-fn)
+  ; ベースケース: 探索の深さが0になったとき、評価関数を呼び出して盤面を評価
+  (if (= ply 0)
+      (funcall eval-fn player board)
+      ; 再帰ケース
+      (let ((moves (legal-moves player board)))
+        (if (null? moves)
+            ; 合法な手がない場合
+            (if (any-legal-move? (opponent player) board)
+                ; 相手が合法な手を持つ場合、相手の手を評価して評価値を返す
+                (- (alpha-beta (opponent player) board
+                               (- cutoff) (- achievable)
+                               (- ply 1) eval-fn))
+                ; 相手も合法な手がない場合、最終的な評価値を返す
+                (final-value player board))
+            ; 合法な手が存在する場合
+            (let ((best-move (first moves)))
+              ; アルファベータ法のメインループ
+              (loop for move in moves do
+                    ; 手を適用して新しい盤面を作成
+                    (let* ((board2 (make-move move player (copy-board board)))
+                           ; 相手の手を再帰的に評価
+                           (val (- (alpha-beta (opponent player) board2
+                                               (- cutoff) (- achievable)
+                                               (- ply 1) eval-fn))))
+                      ; 新しい評価値が既知の最善よりも高い場合
+                      (when (> val achievable)
+                        ; 最善手と評価値を更新
+                        (setf achievable val)
+                        (setf best-move move)))
+                    ; アルファがベータを超える場合は探索を打ち切る
+                    until (>= achievable cutoff))
+              ; 最終的な結果を返す
+              (values achievable best-move))))))
+
+
+
 (define (関数名 ...... )
  (call/cc      ;; 必ず二行目に call/cc を置く
   (lambda (継続名) ;; 継続名はbreakでもreturnでもcontでもccでもお好きなように
@@ -533,15 +571,26 @@
                 (alpha-beta (opponent player) board (- cutoff) (- achievable) (- ply 1) eval-fn)
                 (final-value player board))
             (let ((best-move (car moves)))
-              (for ((move moves))
+              (for ((move moves)
+                             #:break  (>= achievable cutoff))
                 (let* ((board2 (make-move move player board))
                        (val (alpha-beta (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
-                  (print-chessboard board2) (newline)
-                 (displayln moves) (displayln move) (displayln best-move) (displayln ply) (displayln val) 
-                  (when (> val achievable) (set! achievable val) (set best-move move))
-                    (when (>= achievable cutoff)  (values achievable best-move)) ; ループを終了
+                 ; (print-chessboard board2) (newline)
+                ; (displayln moves) (displayln move) (displayln best-move) (displayln ply) (displayln val)
+                ;  (displayln "ach") (displayln achievable)
+                  (when (> val achievable) (set! achievable val) (set! best-move move))
+                  ;  (when (>= achievable cutoff) best-move) ; (values achievable best-move)) ; ループを終了                       
                   best-move)))))))
            ; (values achievable best-move))))))))
+
+(define (alpha-beta-searcher depth eval-fn)
+  (lambda (player board)
+   ; (let-values (((value move)
+                  (alpha-beta player board losing-value winning-value depth eval-fn)))
+
+;(othello random-strategy (alpha-beta-searcher 2 count-difference))
+
+ (display (alpha-beta 'black (initial-board) losing-value winning-value 1 count-difference))
 
 
 
@@ -579,13 +628,6 @@
                            (declare (ignore value))
                            move)))
 |#
-
-(define (alpha-beta-searcher depth eval-fn)
-  (lambda (player board)
-   ; (let-values (((value move)
-                  (alpha-beta player board losing-value winning-value depth eval-fn)))
-
-(othello random-strategy (alpha-beta-searcher 2 count-difference))
 
 
 
