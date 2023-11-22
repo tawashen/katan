@@ -583,6 +583,33 @@
                   best-move)))))))
            ; (values achievable best-move))))))))
 
+
+(define (alpha-beta2 player board achievable cutoff ply eval-fn)
+  (if (= ply 0)
+      (eval-fn player board)
+      (let ((moves (legal-moves player board)))
+        (if (null? moves)
+            (if (any-legal-move? (opponent player ) board)
+                (alpha-beta2 (opponent player) board (- cutoff) (- achievable) (- ply 1) eval-fn)
+                (final-value player board))
+            (let ((best-move (car moves)))
+            ;  (for ((move moves)
+                      ;       #:break  (>= achievable cutoff))
+              (let loop ((move moves) (best-move #f))
+                (let* ((board2 (make-move move player board))
+                       (val (alpha-beta2 (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
+                 ; (print-chessboard board2) (newline)
+                ; (displayln moves) (displayln move) (displayln best-move) (displayln ply) (displayln val)
+                ;  (displayln "ach") (displayln achievable)
+               ;   (when (> val achievable) (set! achievable val) (set! best-move move))
+                  (cond ((null? move) (values achievable best-move))
+                        ((>= achievable cutoff))
+                        (else
+                  (loop (cdr move) (if (> val achievable) move best-move)))))))))))
+                  ;  (when (>= achievable cutoff) best-move) ; (values achievable best-move)) ; ループを終了                       
+                 ; best-move)))))))
+            ;(values achievable best-move))))))))
+
 (define (alpha-beta-searcher depth eval-fn)
   (lambda (player board)
    ; (let-values (((value move)
