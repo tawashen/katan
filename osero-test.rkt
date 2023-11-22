@@ -595,17 +595,18 @@
             (let ((best-move (car moves)))
             ;  (for ((move moves)
                       ;       #:break  (>= achievable cutoff))
-              (let loop ((move moves) (best-move #f))
-                (let* ((board2 (make-move move player board))
-                       (val (alpha-beta2 (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
-                 ; (print-chessboard board2) (newline)
-                ; (displayln moves) (displayln move) (displayln best-move) (displayln ply) (displayln val)
-                ;  (displayln "ach") (displayln achievable)
-               ;   (when (> val achievable) (set! achievable val) (set! best-move move))
-                  (cond ((null? move) (values achievable best-move))
-                        ((>= achievable cutoff))
+              (let loop ((moves moves))
+                  (cond ((null? moves) best-move) ;(values achievable best-move))
+                        ((>= achievable cutoff) best-move) ;(values achievable best-move))
                         (else
-                  (loop (cdr move) (if (> val achievable) move best-move)))))))))))
+                (let* ((move (car moves))
+                       (board2 (make-move move player board))
+                       (val (alpha-beta2 (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
+                  (print-chessboard board2) (newline)
+                 (displayln moves) (displayln move); (displayln best-move) (displayln ply) (displayln val)
+                  (displayln "ach") (displayln achievable)
+                  (when (> val achievable) (set! achievable val) (set! best-move move))                   
+                  (loop (cdr moves)))))))))))
                   ;  (when (>= achievable cutoff) best-move) ; (values achievable best-move)) ; ループを終了                       
                  ; best-move)))))))
             ;(values achievable best-move))))))))
@@ -613,12 +614,14 @@
 (define (alpha-beta-searcher depth eval-fn)
   (lambda (player board)
    ; (let-values (((value move)
-                  (alpha-beta player board losing-value winning-value depth eval-fn)))
+                  (alpha-beta2 player board losing-value winning-value depth eval-fn)))
 
-;(othello random-strategy (alpha-beta-searcher 2 count-difference))
 
- (display (alpha-beta 'black (initial-board) losing-value winning-value 1 count-difference))
 
+;(othello random-strategy (alpha-beta-searcher 2 count-difference)) 
+
+;(display (let-values (((ach best-move) (alpha-beta2 'black (initial-board) losing-value winning-value 1 count-difference))) best-move))
+  ;(display best-move))
 
 
 #|
