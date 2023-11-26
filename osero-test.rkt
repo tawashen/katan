@@ -650,7 +650,9 @@
                         (else
                 (let* ((move (car moves))
                        (board2 (make-move move player board))
-                       (val (alpha-beta4 (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
+                       (val
+                         (with-handlers ((exn:fail?　(lambda (exn) (eval-fn player board2))))
+                           (let-values (((ach move) (alpha-beta4 (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn))) ach))))
                   (print-chessboard board2) (newline)
                  (displayln moves) (displayln move); (displayln best-move) (displayln ply) (displayln val)
                   (displayln "ach") (displayln achievable)
@@ -665,17 +667,14 @@
 
 (define (alpha-beta-searcher2 depth eval-fn)
   (lambda (player board)
- ;   (with-handlers ((exn:fail?
-　;　　　　　　(lambda (exn) move)))
     (let-values (((value move)
                   (alpha-beta4 player board losing-value winning-value depth eval-fn))) move)))
 
 
 
-;(othello random-strategy (alpha-beta-searcher2 2 count-difference)) 
+(othello random-strategy (alpha-beta-searcher2 2 count-difference)) 
 
-(display (let-values (((ach best-move) (alpha-beta4 'black (initial-board) losing-value winning-value 1 count-difference))) best-move))
-  ;(display best-move))
+;(alpha-beta4 'black (initial-board) losing-value winning-value 2 count-difference)
 
 
 #|
