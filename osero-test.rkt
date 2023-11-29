@@ -562,7 +562,7 @@
 |#
 
 
-(define (alpha-beta player board achievable cutoff ply eval-fn);Void問題があるので使えない
+(define (alpha-beta player board achievable cutoff ply eval-fn);Void問題解決！Best-moveを返すのはLetの返り値としてだったのか！
   (if (= ply 0)
       (eval-fn player board)
       (let ((moves (legal-moves player board)))
@@ -575,16 +575,12 @@
                              #:break  (>= achievable cutoff))
                 (let* ((board2 (make-move move player board))
                        (val (alpha-beta (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
-                 ; (print-chessboard board2) (newline)
-                ; (displayln moves) (displayln move) (displayln best-move) (displayln ply) (displayln val)
-                ;  (displayln "ach") (displayln achievable)
-                  (when (> val achievable) (set! achievable val) (set! best-move move))
-                  ;  (when (>= achievable cutoff) best-move) ; (values achievable best-move)) ; ループを終了                       
-                  best-move)))))))
-           ; (values achievable best-move))))))))
+                  (when (> val achievable) (begin (set! achievable val) (set! best-move move)))))              
+                  best-move)))))
+ 
 
 
-(define (alpha-beta2 player board achievable cutoff ply eval-fn)
+(define (alpha-beta2 player board achievable cutoff ply eval-fn);Loopを用いてBest-moveだけを返すようにしてなんとか動く
   (if (= ply 0);最深部まで行ったときの盤面評価
       (eval-fn player board)
       (let ((moves (legal-moves player board)))
@@ -593,8 +589,6 @@
                 (alpha-beta2 (opponent player) board (- cutoff) (- achievable) (- ply 1) eval-fn);相手に回して再帰
                 (final-value player board));どっちも打つ手がなかったら
             (let ((best-move (car moves)))
-            ;  (for ((move moves)
-                      ;       #:break  (>= achievable cutoff))
               (let loop ((moves moves))
                   (cond ((null? moves) best-move) ;(values achievable best-move))
                         ((>= achievable cutoff) best-move) ;(values achievable best-move))
@@ -607,9 +601,7 @@
                   (displayln "ach") (displayln achievable)
                   (when (> val achievable) (set! achievable val) (set! best-move move))                   
                   (loop (cdr moves)))))))))))
-                  ;  (when (>= achievable cutoff) best-move) ; (values achievable best-move)) ; ループを終了                       
-                 ; best-move)))))))
-            ;(values achievable best-move))))))))
+
 
 (define (alpha-beta3 player board achievable cutoff ply eval-fn);Condでつないでみる実験
         (let ((moves (legal-moves player board)))
@@ -631,11 +623,9 @@
                   (displayln "ach") (displayln achievable)
                   (when (> val achievable) (set! achievable val) (set! best-move move))                   
                   (loop (cdr moves)))))))))))
-                  ;  (when (>= achievable cutoff) best-move) ; (values achievable best-move)) ; ループを終了                       
-                 ; best-move)))))))
-            ;(values achievable best-move))))))))
 
-(define (alpha-beta4 player board achievable cutoff ply eval-fn)
+
+(define (alpha-beta4 player board achievable cutoff ply eval-fn);Valuesで値を返すように無理やり改造
   (if (= ply 0);最深部まで行ったときの盤面評価
       (eval-fn player board)
       (let ((moves (legal-moves player board)))
@@ -652,7 +642,9 @@
                        (board2 (make-move move player board))
                        (val
                          (with-handlers ((exn:fail?　(lambda (exn) (eval-fn player board2))))
-                           (let-values (((ach move) (alpha-beta4 (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn))) ach))))
+                           (let-values (((ach move)
+                                         (alpha-beta4 (opponent player) board2 (- cutoff)
+                                                      (- achievable) (- ply 1) eval-fn))) ach))))
                   (print-chessboard board2) (newline)
                  (displayln moves) (displayln move); (displayln best-move) (displayln ply) (displayln val)
                   (displayln "ach") (displayln achievable)
@@ -663,7 +655,7 @@
 (define (alpha-beta-searcher depth eval-fn)
   (lambda (player board)
    ; (let-values (((value move)
-                  (alpha-beta2 player board losing-value winning-value depth eval-fn)))
+                  (alpha-beta player board losing-value winning-value depth eval-fn)))
 
 (define (alpha-beta-searcher2 depth eval-fn)
   (lambda (player board)
@@ -672,7 +664,7 @@
 
 
 
-(othello random-strategy (alpha-beta-searcher2 2 count-difference)) 
+(othello (alpha-beta-searcher 4 weighted-squares) (alpha-beta-searcher 4 count-difference)) 
 
 ;(alpha-beta4 'black (initial-board) losing-value winning-value 2 count-difference)
 
@@ -713,4 +705,29 @@
 |#
 
 
+;CL
+(defun modified-weighted-squares (player board)
+  "Like WEIGHTED-SQUARES, but don't take off for moving
+  near an occupied corner."
+  (let ((w (weighted-squares player board)))
+    (dolist (corner '(11 18 81 88))
+      (when (not (eql (bref board corner) empty))
+        (dolist (c (neighbors corner))
+          (when (not (eql (bref board c) empty))
+            (incf w (* (- 5 (aref *weights* c))
+                       (if (eql (bref board c) player)
+                           +1 -1)))))))
+    w))
+
+(let ((neighbor-table (make-array 100 :initial-element nil)))
+  ;; Initialize the neighbor table
+  (dolist (square all-squares)
+    (dolist (dir all-directions)
+      (if (valid-p (+ square dir))
+          (push (+ square dir)
+                (aref neighbor-table square)))))
+
+  (defun neighbors (square)
+    "Return a list of all squares adjacent to a square."
+    (aref neighbor-table square)))
 
