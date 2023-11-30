@@ -704,30 +704,48 @@
                            move)))
 |#
 
-
+#|
 ;CL
-(defun modified-weighted-squares (player board)
+(defun modified-weighted-squares (player board);重み付けを変更したデータを作成
   "Like WEIGHTED-SQUARES, but don't take off for moving
   near an occupied corner."
-  (let ((w (weighted-squares player board)))
-    (dolist (corner '(11 18 81 88))
-      (when (not (eql (bref board corner) empty))
-        (dolist (c (neighbors corner))
-          (when (not (eql (bref board c) empty))
-            (incf w (* (- 5 (aref *weights* c))
-                       (if (eql (bref board c) player)
+  (let ((w (weighted-squares player board)));Wに重み付けマップを束縛
+    (dolist (corner '(11 18 81 88));コーナーの数値のリストで繰り返し
+      (when (not (eql (bref board corner) empty));ボードのコーナーが空でない時には
+        (dolist (c (neighbors corner));CにCornerのお隣をリストとして束縛して繰り返し
+          (when (not (eql (bref board c) empty));そのお隣のマスそれぞれが空でなければ
+            (incf w (* (- 5 (aref *weights* c));Weight定数のマップを-5する
+                       (if (eql (bref board c) player);Cのマスが自軍マスだったら+1
                            +1 -1)))))))
-    w))
+    w));最後に出来たWを返す
+|#
+
+(define-syntax incf
+  (syntax-rules ()
+    ((_ var)
+     (set! var (+ var 1)))
+    ((_ var n)
+     (set! var (+ var n)))))
+
+(define (modified-weighted-squares player board)
+  (let ((w (weighted-squares player board)))
+    (for ((corner '(11 18 81 88)))
+      (when (not (equal? (list-ref board corner) 'empty))
+        (for ((c (neighbors corner)))
+          (when (not (equal? (list-ref board c) 'empty))
+            (incf w (* (- 5 (list-ref *weights* c))
+                       (if (equal? (list-ref board c) player) 1 -1)))))))))
+  
 
 (let ((neighbor-table (make-array 100 :initial-element nil)))
   ;; Initialize the neighbor table
-  (dolist (square all-squares)
-    (dolist (dir all-directions)
-      (if (valid-p (+ square dir))
-          (push (+ square dir)
-                (aref neighbor-table square)))))
+  (dolist (square all-squares);Squareに全マスのリストを束縛
+    (dolist (dir all-directions);全方向をDirに束縛（入れ子繰り返し）
+      (if (valid-p (+ square dir));全マスに各方向マスを足したところが有効なマスなら
+          (push (+ square dir);マス＋方位であるお隣マスを
+                (aref neighbor-table square)))));テーブルのマス番目に追加する
 
   (defun neighbors (square)
     "Return a list of all squares adjacent to a square."
-    (aref neighbor-table square)))
+    (aref neighbor-table square)));スクエアのインデックスでお隣マスのリストが返ってくる
 
