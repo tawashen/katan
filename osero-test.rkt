@@ -737,8 +737,9 @@
             (incf w (* (- 5 (list-ref *weights* c))
                        (if (equal? (list-ref board c) player) 1 -1)))))))
     w))
+|#
   
-
+#|
 (let ((neighbor-table (make-array 100 :initial-element nil)))
   ;; Initialize the neighbor table
   (dolist (square all-squares);Squareに全マスのリストを束縛
@@ -746,17 +747,9 @@
       (if (valid-p (+ square dir));全マスに各方向マスを足したところが有効なマスなら
           (push (+ square dir);マス＋方位であるお隣マスを
                 (aref neighbor-table square)))));テーブルのマス番目に追加する
-
-
-
-(define (make-neighbor-list lst)
-  (let loop ((lst (map (lambda (x) '()) all-squares)) (result '()))
-    (if (null? lst) (car result)
-      (loop (cdr lst) (cons  (map (lambda (y)
-                                   (map (lambda (x)
-                                          (+ y x)) all-directions)) all-squares) '())))))
-
 |#
+
+
 (define (make-neighbor-list lst)
   (let loop ((lst lst) (result '()))
     (if (null? lst) (reverse result)
@@ -766,7 +759,7 @@
 
 
 (define neighbor-table (make-neighbor-list all-squares))
-;(display neighbor-table)
+(display neighbor-table)
 
 
 #|
@@ -784,4 +777,4 @@
     (for/list ((dir all-directions))
        (+ square dir)))))
  
-(make-neighbor-list2 all-squares)
+;(make-neighbor-list2 all-squares)
