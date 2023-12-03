@@ -664,7 +664,7 @@
 
 
 
-(othello (alpha-beta-searcher 4 weighted-squares) (alpha-beta-searcher 4 count-difference)) 
+;(othello (alpha-beta-searcher 4 weighted-squares) (alpha-beta-searcher 4 count-difference)) 
 
 ;(alpha-beta4 'black (initial-board) losing-value winning-value 2 count-difference)
 
@@ -727,6 +727,7 @@
     ((_ var n)
      (set! var (+ var n)))))
 
+#|
 (define (modified-weighted-squares player board)
   (let ((w (weighted-squares player board)))
     (for ((corner '(11 18 81 88)))
@@ -734,7 +735,8 @@
         (for ((c (neighbors corner)))
           (when (not (equal? (list-ref board c) 'empty))
             (incf w (* (- 5 (list-ref *weights* c))
-                       (if (equal? (list-ref board c) player) 1 -1)))))))))
+                       (if (equal? (list-ref board c) player) 1 -1)))))))
+    w))
   
 
 (let ((neighbor-table (make-array 100 :initial-element nil)))
@@ -745,7 +747,41 @@
           (push (+ square dir);マス＋方位であるお隣マスを
                 (aref neighbor-table square)))));テーブルのマス番目に追加する
 
+
+
+(define (make-neighbor-list lst)
+  (let loop ((lst (map (lambda (x) '()) all-squares)) (result '()))
+    (if (null? lst) (car result)
+      (loop (cdr lst) (cons  (map (lambda (y)
+                                   (map (lambda (x)
+                                          (+ y x)) all-directions)) all-squares) '())))))
+
+|#
+(define (make-neighbor-list lst)
+  (let loop ((lst lst) (result '()))
+    (if (null? lst) (reverse result)
+      (loop (cdr lst) (cons  (filter (lambda (z) (valid-p z))
+                                   (map (lambda (x) (+ (car lst) x))
+                                        all-directions)) result)))))
+
+
+(define neighbor-table (make-neighbor-list all-squares))
+;(display neighbor-table)
+
+
+#|
   (defun neighbors (square)
     "Return a list of all squares adjacent to a square."
     (aref neighbor-table square)));スクエアのインデックスでお隣マスのリストが返ってくる
 
+|#
+
+(require srfi/1)
+
+(define (make-neighbor-list2 lst)
+  (for/list ((square all-squares) (count (iota 64)))
+       (filter (lambda (z) (valid-p z))
+    (for/list ((dir all-directions))
+       (+ square dir)))))
+ 
+(make-neighbor-list2 all-squares)
