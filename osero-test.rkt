@@ -1,5 +1,8 @@
 #lang racket
 
+
+(require srfi/1)
+
 (define all-squares
   (let loop ((i 10) (squares '()))
     (if (= i 89)
@@ -577,7 +580,10 @@
                        (val (alpha-beta (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
                   (when (> val achievable) (begin (set! achievable val) (set! best-move move)))))              
                   best-move)))))
- 
+
+(alpha-beta 'black (initial-board) 10000 -10000 3 count-difference)
+
+
 
 
 (define (alpha-beta2 player board achievable cutoff ply eval-fn);Loopを用いてBest-moveだけを返すようにしてなんとか動く
@@ -727,17 +733,42 @@
     ((_ var n)
      (set! var (+ var n)))))
 
-#|
+
+(define (make-neighbor-list lst)
+  (let loop ((lst lst) (result '()))
+    (if (null? lst) (reverse result)
+      (loop (cdr lst) (cons  (filter (lambda (z) (valid-p z))
+                                   (map (lambda (x) (+ (car lst) x))
+                                        all-directions)) result)))))
+
+
+(define (make-neighbor-list2 lst)
+  (for/list ((square all-squares) (count (iota 64)))
+       (filter (lambda (z) (valid-p z))
+    (for/list ((dir all-directions))
+       (+ square dir)))))
+
+
+
+(define neighbor-table (make-neighbor-list2 all-squares))
+;(display neighbor-table)
+
+
+
+(define (neighbors square)
+  (list-ref neighbor-table square))
+
+
 (define (modified-weighted-squares player board)
   (let ((w (weighted-squares player board)))
     (for ((corner '(11 18 81 88)))
-      (when (not (equal? (list-ref board corner) 'empty))
+      (when (not (equal? (list-ref (vector->list board) corner) 'empty))
         (for ((c (neighbors corner)))
           (when (not (equal? (list-ref board c) 'empty))
             (incf w (* (- 5 (list-ref *weights* c))
                        (if (equal? (list-ref board c) player) 1 -1)))))))
     w))
-|#
+
   
 #|
 (let ((neighbor-table (make-array 100 :initial-element nil)))
@@ -750,16 +781,8 @@
 |#
 
 
-(define (make-neighbor-list lst)
-  (let loop ((lst lst) (result '()))
-    (if (null? lst) (reverse result)
-      (loop (cdr lst) (cons  (filter (lambda (z) (valid-p z))
-                                   (map (lambda (x) (+ (car lst) x))
-                                        all-directions)) result)))))
+;(modified-weighted-squares 'black (initial-board))
 
-
-(define neighbor-table (make-neighbor-list all-squares))
-(display neighbor-table)
 
 
 #|
@@ -769,12 +792,7 @@
 
 |#
 
-(require srfi/1)
 
-(define (make-neighbor-list2 lst)
-  (for/list ((square all-squares) (count (iota 64)))
-       (filter (lambda (z) (valid-p z))
-    (for/list ((dir all-directions))
-       (+ square dir)))))
+
  
 ;(make-neighbor-list2 all-squares)

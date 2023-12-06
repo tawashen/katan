@@ -1,5 +1,8 @@
 #lang racket
 
+
+(require srfi/1)
+
 (define all-squares
   (let loop ((i 10) (squares '()))
     (if (= i 89)
@@ -562,7 +565,7 @@
 |#
 
 
-(define (alpha-beta player board achievable cutoff ply eval-fn);Void問題があるので使えない
+(define (alpha-beta player board achievable cutoff ply eval-fn);Void問題解決！Best-moveを返すのはLetの返り値としてだったのか！
   (if (= ply 0)
       (eval-fn player board)
       (let ((moves (legal-moves player board)))
@@ -572,11 +575,11 @@
                 (final-value player board))
             (let ((best-move (car moves)))
               (for ((move moves)
-                             #:final  (>= achievable cutoff) best-move)
+                             #:break  (>= achievable cutoff))
                 (let* ((board2 (make-move move player board))
                        (val (alpha-beta (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
-                  (when (> val achievable) (set! achievable val) (set! best-move move))                
-                  best-move)))))))
+                  (when (> val achievable) (begin (set! achievable val) (set! best-move move)))))              
+                  best-move)))))
  
 
 
@@ -655,7 +658,7 @@
 (define (alpha-beta-searcher depth eval-fn)
   (lambda (player board)
    ; (let-values (((value move)
-                  (alpha-beta2 player board losing-value winning-value depth eval-fn)))
+                  (alpha-beta player board losing-value winning-value depth eval-fn)))
 
 (define (alpha-beta-searcher2 depth eval-fn)
   (lambda (player board)
@@ -664,7 +667,7 @@
 
 
 
-(othello random-strategy (alpha-beta-searcher2 2 count-difference)) 
+;(othello (alpha-beta-searcher 4 weighted-squares) (alpha-beta-searcher 4 count-difference)) 
 
 ;(alpha-beta4 'black (initial-board) losing-value winning-value 2 count-difference)
 
@@ -704,5 +707,89 @@
                            move)))
 |#
 
+#|
+;CL
+(defun modified-weighted-squares (player board);重み付けを変更したデータを作成
+  "Like WEIGHTED-SQUARES, but don't take off for moving
+  near an occupied corner."
+  (let ((w (weighted-squares player board)));Wに重み付けマップを束縛
+    (dolist (corner '(11 18 81 88));コーナーの数値のリストで繰り返し
+      (when (not (eql (bref board corner) empty));ボードのコーナーが空でない時には
+        (dolist (c (neighbors corner));CにCornerのお隣をリストとして束縛して繰り返し
+          (when (not (eql (bref board c) empty));そのお隣のマスそれぞれが空でなければ
+            (incf w (* (- 5 (aref *weights* c));Weight定数のマップを-5する
+                       (if (eql (bref board c) player);Cのマスが自軍マスだったら+1
+                           +1 -1)))))))
+    w));最後に出来たWを返す
+|#
+
+(define-syntax incf
+  (syntax-rules ()
+    ((_ var)
+     (set! var (+ var 1)))
+    ((_ var n)
+     (set! var (+ var n)))))
 
 
+(define (make-neighbor-list lst)
+  (let loop ((lst lst) (result '()))
+    (if (null? lst) (reverse result)
+      (loop (cdr lst) (cons  (filter (lambda (z) (valid-p z))
+                                   (map (lambda (x) (+ (car lst) x))
+                                        all-directions)) result)))))
+
+
+(define neighbor-table (make-neighbor-list all-squares))
+;(display neighbor-table)
+
+
+
+
+(define (make-neighbor-list2 lst)
+  (for/list ((square all-squares) (count (iota 64)))
+       (filter (lambda (z) (valid-p z))
+    (for/list ((dir all-directions))
+       (+ square dir)))))
+
+
+(define (neighbors square)
+  (list-ref neighbor-table square))
+
+
+(define (modified-weighted-squares player board)
+  (let ((w (weighted-squares player board)))
+    (for ((corner '(11 18 81 88)))
+      (when (not (equal? (list-ref (vector->list board) corner) 'empty))
+        (for ((c (neighbors corner)))
+          (when (not (equal? (list-ref board c) 'empty))
+            (incf w (* (- 5 (list-ref *weights* c))
+                       (if (equal? (list-ref board c) player) 1 -1)))))))
+    w))
+
+  
+#|
+(let ((neighbor-table (make-array 100 :initial-element nil)))
+  ;; Initialize the neighbor table
+  (dolist (square all-squares);Squareに全マスのリストを束縛
+    (dolist (dir all-directions);全方向をDirに束縛（入れ子繰り返し）
+      (if (valid-p (+ square dir));全マスに各方向マスを足したところが有効なマスなら
+          (push (+ square dir);マス＋方位であるお隣マスを
+                (aref neighbor-table square)))));テーブルのマス番目に追加する
+|#
+
+
+;(modified-weighted-squares 'black (initial-board))
+
+
+
+#|
+  (defun neighbors (square)
+    "Return a list of all squares adjacent to a square."
+    (aref neighbor-table square)));スクエアのインデックスでお隣マスのリストが返ってくる
+
+|#
+
+
+
+ 
+;(make-neighbor-list2 all-squares)
