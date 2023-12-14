@@ -339,4 +339,4 @@
     (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number))))))
     
 
-;(place-status)
+(place-status)

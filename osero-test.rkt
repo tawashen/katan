@@ -24,6 +24,9 @@
        all-squares)
       (set-piece! board 44 'white)
       (set-piece! board 45 'black)
+            (set-piece! board 11 'black)
+            (set-piece! board 22 'white)
+            (set-piece! board 33 'white)
       (set-piece! board 54 'black)
       (set-piece! board 55 'white))
 
@@ -41,10 +44,10 @@
                      empty empty empty empty empty empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
-                     empty empty empty black black empty empty empty outer outer
+                     empty empty empty white black empty empty empty outer outer
                      empty empty empty black black empty empty empty outer outer
                      empty empty empty empty black empty empty empty outer outer
-                     empty empty black black white empty empty empty outer outer
+                     empty empty white black white empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
                      outer outer outer outer outer outer outer outer outer))
 
@@ -55,6 +58,12 @@
     [(eq? piece 'white) "W"]
     [(eq? piece 'black) "B"]))
 
+(define (count-difference player board);board内のPlayer数を数える
+  (let loop ((lst (vector->list board)) (count 0))
+    (if (null? lst) count
+        (loop (cdr lst) (if (equal? player (car lst)) (+ count 1) count)))))
+
+
 (define (print-chessboard data)
   (display (format "B:~a W:~a~%" (count-difference 'black data) (count-difference 'white data)))
   (for ([row (in-range 10)])
@@ -62,7 +71,7 @@
       (display (format "~a " (format-piece (vector-ref data (+ col (* row 10)))))))
     (newline)))
 
-;(print-chessboard data)
+;(print-chessboard (initial-board))
 
 
 (define all-directions '(-11 -10 -9 -1 1 9 10 11))
@@ -289,10 +298,7 @@
 |#
 
 ;ok
-(define (count-difference player board);board内のPlayer数を数える
-  (let loop ((lst (vector->list board)) (count 0))
-    (if (null? lst) count
-        (loop (cdr lst) (if (equal? player (car lst)) (+ count 1) count)))))
+
           
   
 
@@ -328,8 +334,10 @@
                       0 0 0 0 0 0 0 0 0 0))
 
 
-(define (weighted-squares player board)
-  (let ((opp (opponent player)) (l-board (vector->list board)) (l-weights (vector->list *weights*)))
+(define (weighted-squares player board);全マスで自マス敵マスのスコアを計算する
+  (let ((opp (opponent player))
+        (l-board (vector->list board));BoardをListに
+        (l-weights (vector->list *weights*)));*weight*をListに
     (let loop ((lst all-squares) (score 0))
       (if (null? lst) score
           (loop (cdr lst) (cond ((equal? (list-ref l-board (car lst)) player)
@@ -342,9 +350,9 @@
 ;cl
 (defun  weighted-squares (player board)
   (let ((opp (opponent plyaer)))
-    (loop for i in all-squares
-          when (eql (bref board i) player)
-          sum (aref *weights* i)
+    (loop for i in all-squares　;iに全マスでループ
+          when (eql (bref board i) player);マスが自マスだったら
+          sum (aref *weights* i);
           when (eql (bref board i) opp)
           sum (- (aref *weights* i)))))
 |#
@@ -449,7 +457,7 @@
          ;   (let loop ((moves moves) (best-move '()) (best-val -100));同じ深度で手があれば以下実行
            ;   (if (null? moves)
              ;     best-move
-            (let ((best-move #f) (best-val 0))
+            (let ((best-move 0) (best-val 0))
                 
                       (for ((move moves))
                           (let* ((board2 (make-move (car moves) player board))
@@ -457,7 +465,7 @@
                               (minimax-gpt (opponent player) board2 (- ply 1) eval-fn)))
                    (newline) (display (format "moves:~a" moves)) (display " ") (display (format "move:~a"(car moves)))
                     (display " ") (display (format "B-move:~a" best-move)) (display " ") (display (format "val:~a" val))
-                    (display " ") (display (format "B-val:~a" best-val))
+                    (display " ") (display (format "B-val:~a" best-val)) (display (format " Player:~a" player))
                     (newline) (print-chessboard board) (newline) (print-chessboard board2)                    
                     (when (or (null? best-val) (> val best-val))
                       (set! best-move move) (set! best-val val))))
@@ -471,7 +479,8 @@
   
   
 
-;(minimax-gpt 'black data 0 count-difference)
+(minimax-gpt 'black data 3 count-difference)
+;(print-chessboard data)
 ;(count-difference 'black data)
 
 #|
@@ -564,6 +573,8 @@
 
 |#
 
+(define achievable 10000)
+(define cutoff -10000)
 
 (define (alpha-beta player board achievable cutoff ply eval-fn);Void問題解決！Best-moveを返すのはLetの返り値としてだったのか！
   (if (= ply 0)
@@ -574,14 +585,19 @@
                 (alpha-beta (opponent player) board (- cutoff) (- achievable) (- ply 1) eval-fn)
                 (final-value player board))
             (let ((best-move (car moves)))
-              (for ((move moves)
-                             #:break  (>= achievable cutoff))
+              (for ((move moves))
+                           ;  #:break  (>= achievable cutoff));すぐさま当てはまって終了してしまう
+                ; #:break (>= achievable cutoff)
                 (let* ((board2 (make-move move player board))
                        (val (alpha-beta (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
-                  (when (> val achievable) (begin (set! achievable val) (set! best-move move)))))              
-                  best-move)))))
+                  (display "move:") (display move) (display " moves:") (display moves) (newline)
+                  (display "achi:") (display achievable) (display " cut:") (display cutoff) (display " val:") (display val) (newline)
+                  (display "player:") (display player) (newline) (print-chessboard board2)
+                ;  (when (> val achievable) (begin (set! achievable val) (set! best-move move)))
+                 ))              
+                  best-move )))));ここで返る時にはBest-moveで返ってOK、途中まではEval-fnでの数値が返るという仕組みということ！？
 
-(alpha-beta 'black (initial-board) 10000 -10000 3 count-difference)
+;(alpha-beta 'black (initial-board) achievable cutoff 3 count-difference)
 
 
 
@@ -607,6 +623,8 @@
                   (displayln "ach") (displayln achievable)
                   (when (> val achievable) (set! achievable val) (set! best-move move))                   
                   (loop (cdr moves)))))))))))
+
+
 
 
 (define (alpha-beta3 player board achievable cutoff ply eval-fn);Condでつないでみる実験
@@ -743,7 +761,7 @@
 
 
 (define (make-neighbor-list2 lst)
-  (for/list ((square all-squares) (count (iota 64)))
+  (for/list ((square all-squares))
        (filter (lambda (z) (valid-p z))
     (for/list ((dir all-directions))
        (+ square dir)))))
@@ -759,17 +777,20 @@
   (list-ref neighbor-table square))
 
 
-(define (modified-weighted-squares player board)
-  (let ((w (weighted-squares player board)))
+(define (modified-weighted-squares player board);盤面の有利不利を考えたスコアを返す
+  (let ((w (weighted-squares player board)));wは今回61
     (for ((corner '(11 18 81 88)))
-      (when (not (equal? (list-ref (vector->list board) corner) 'empty))
-        (for ((c (neighbors corner)))
-          (when (not (equal? (list-ref board c) 'empty))
-            (incf w (* (- 5 (list-ref *weights* c))
+      (when (not (equal? (list-ref (vector->list board) corner) 'empty));コーナーがEmptyじゃなければ
+        (for ((c (neighbors corner)));該当コーナーのお隣リストをCに
+          (when (not (equal? (list-ref board c) 'empty));各お隣がEmptyじゃなければ
+            (incf w (* (- 5 (list-ref *weights* c));スコアwにお隣の座標が自分であれば‐5を、敵なら+5を掛けて加算
                        (if (equal? (list-ref board c) player) 1 -1)))))))
     w))
 
-  
+
+;(weighted-squares 'black data)
+
+
 #|
 (let ((neighbor-table (make-array 100 :initial-element nil)))
   ;; Initialize the neighbor table
@@ -779,7 +800,6 @@
           (push (+ square dir);マス＋方位であるお隣マスを
                 (aref neighbor-table square)))));テーブルのマス番目に追加する
 |#
-
 
 ;(modified-weighted-squares 'black (initial-board))
 
@@ -796,3 +816,5 @@
 
  
 ;(make-neighbor-list2 all-squares)
+
+

@@ -41,10 +41,10 @@
                      empty empty empty empty empty empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
-                     empty empty empty black black empty empty empty outer outer
+                     empty empty empty white black empty empty empty outer outer
                      empty empty empty black black empty empty empty outer outer
                      empty empty empty empty black empty empty empty outer outer
-                     empty empty black black white empty empty empty outer outer
+                     empty empty white black white empty empty empty outer outer
                      empty empty empty empty empty empty empty empty outer outer
                      outer outer outer outer outer outer outer outer outer))
 
@@ -449,7 +449,7 @@
          ;   (let loop ((moves moves) (best-move '()) (best-val -100));同じ深度で手があれば以下実行
            ;   (if (null? moves)
              ;     best-move
-            (let ((best-move #f) (best-val 0))
+            (let ((best-move 0) (best-val 0))
                 
                       (for ((move moves))
                           (let* ((board2 (make-move (car moves) player board))
@@ -471,7 +471,8 @@
   
   
 
-;(minimax-gpt 'black data 0 count-difference)
+;(minimax-gpt 'black data 3 count-difference)
+;(print-chessboard data)
 ;(count-difference 'black data)
 
 #|
@@ -564,6 +565,8 @@
 
 |#
 
+(define achievable 10000)
+(define cutoff -10000)
 
 (define (alpha-beta player board achievable cutoff ply eval-fn);Void問題解決！Best-moveを返すのはLetの返り値としてだったのか！
   (if (= ply 0)
@@ -574,13 +577,20 @@
                 (alpha-beta (opponent player) board (- cutoff) (- achievable) (- ply 1) eval-fn)
                 (final-value player board))
             (let ((best-move (car moves)))
-              (for ((move moves)
-                             #:break  (>= achievable cutoff))
+              (for ((move moves))
+                           ;  #:break  (>= achievable cutoff));すぐさま当てはまって終了してしまう
+                 #:break (>= achievable cutoff)
                 (let* ((board2 (make-move move player board))
                        (val (alpha-beta (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
-                  (when (> val achievable) (begin (set! achievable val) (set! best-move move)))))              
+                  (display "move:") (display move) (display "moves:") (display moves) (newline)
+                  (display "achi:") (display achievable) (display "cut:") (display cutoff)
+                  (when (> val achievable) (begin (set! achievable val) (set! best-move move)))
+                 ))              
                   best-move)))))
- 
+
+(alpha-beta 'black (initial-board) achievable cutoff 3 count-difference)
+
+
 
 
 (define (alpha-beta2 player board achievable cutoff ply eval-fn);Loopを用いてBest-moveだけを返すようにしてなんとか動く
@@ -604,6 +614,8 @@
                   (displayln "ach") (displayln achievable)
                   (when (> val achievable) (set! achievable val) (set! best-move move))                   
                   (loop (cdr moves)))))))))))
+
+
 
 
 (define (alpha-beta3 player board achievable cutoff ply eval-fn);Condでつないでみる実験
@@ -739,17 +751,17 @@
                                         all-directions)) result)))))
 
 
-(define neighbor-table (make-neighbor-list all-squares))
-;(display neighbor-table)
-
-
-
-
 (define (make-neighbor-list2 lst)
-  (for/list ((square all-squares) (count (iota 64)))
+  (for/list ((square all-squares))
        (filter (lambda (z) (valid-p z))
     (for/list ((dir all-directions))
        (+ square dir)))))
+
+
+
+(define neighbor-table (make-neighbor-list2 all-squares))
+;(display neighbor-table)
+
 
 
 (define (neighbors square)
