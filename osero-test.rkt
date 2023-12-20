@@ -24,9 +24,9 @@
        all-squares)
       (set-piece! board 44 'white)
       (set-piece! board 45 'black)
-            (set-piece! board 11 'black)
-            (set-piece! board 22 'white)
-            (set-piece! board 33 'white)
+           ; (set-piece! board 11 'black)
+           ; (set-piece! board 22 'white)
+           ; (set-piece! board 33 'white)
       (set-piece! board 54 'black)
       (set-piece! board 55 'white))
 
@@ -444,42 +444,40 @@
 |#
 
 
+(define zibun 'black)
+(define teki 'white)
 
 (define (minimax-gpt player board ply eval-fn)
   (if (= ply 0);ここが終着点で枚数を返す
-      (eval-fn player board)
+      (cons (eval-fn player board) 0)
       (let ((moves (legal-moves player board)))
         (if (null? moves);もうその深度で他に手がないか？
             (if (any-legal-move? (opponent player) board);敵も手がないか？
                 (minimax-gpt (opponent player) board (- ply 1) eval-fn)
-               ; (display "end"))
                (final-value player board));外部関数を呼び出して独立させるべき？
-         ;   (let loop ((moves moves) (best-move '()) (best-val -100));同じ深度で手があれば以下実行
-           ;   (if (null? moves)
-             ;     best-move
-            (let ((best-move 0) (best-val 0))
-                
+            (let ((best-val (if (odd? ply) -10000 10000)) (best-move 0))         
                       (for ((move moves))
-                          (let* ((board2 (make-move (car moves) player board))
+                          (let* ((board2 (make-move move player board))
                          (val
                               (minimax-gpt (opponent player) board2 (- ply 1) eval-fn)))
-                   (newline) (display (format "moves:~a" moves)) (display " ") (display (format "move:~a"(car moves)))
+                   (newline) (display (format "moves:~a" moves)) (display " ") (display (format "move:~a" move))
                     (display " ") (display (format "B-move:~a" best-move)) (display " ") (display (format "val:~a" val))
-                    (display " ") (display (format "B-val:~a" best-val)) (display (format " Player:~a" player))
+                    (display " ") (display (format "B-val:~a" best-val)) (display (format " Player:~a" player)) (display (format " Ply:~a" ply))
                     (newline) (print-chessboard board) (newline) (print-chessboard board2)                    
-                    (when (or (null? best-val) (> val best-val))
-                      (set! best-move move) (set! best-val val))))
-              best-move)))))
-                     ;   (loop (cdr moves) (car moves) val)
-                     ;   (loop (cdr moves) best-move best-val)))))))))
+                    (when (and (> (car val) best-val); (equal? player zibun))
+                               ;(equal? player 'black))
+                               (odd? ply)) ;引数が2から始める時はこれで3からの時にはOdd?にする
+                      (set! best-move move) (set! best-val (car val)))
+                    (when (and (< (car val) best-val); (equal? player teki))
+                               ;(equal? player 'white))
+                               (even? ply))
+                      (set! best-move move) (set! best-val (car val)))))
+              (cons best-val best-move))))))
+    
+(minimax-gpt 'black
+             data 3 count-difference)
 
 
-
-;(define (e-minimax player board ply eval-fn)
-  
-  
-
-(minimax-gpt 'black data 3 count-difference)
 ;(print-chessboard data)
 ;(count-difference 'black data)
 
@@ -494,7 +492,7 @@
 |#
 
 (define (minimax-searcher ply eval-fn)
-  (lambda (player board) (minimax-gpt player board ply eval-fn)))
+  (cdr (lambda (player board) (minimax-gpt player board ply eval-fn))))
    ; (let-values (((value move) (minimax-gpt player board ply eval-fn))) move))) 
 
 ;(othello (maximizer count-difference) (minimax-searcher 3 count-difference))
@@ -597,7 +595,7 @@
                  ))              
                   best-move )))));ここで返る時にはBest-moveで返ってOK、途中まではEval-fnでの数値が返るという仕組みということ！？
 
-;(alpha-beta 'black (initial-board) achievable cutoff 3 count-difference)
+;(alpha-beta 'black (initial-board) achievable cutoff 1 count-difference)
 
 
 
