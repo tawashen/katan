@@ -187,7 +187,7 @@
 
 
 
-;ポイントから道が伸びているポイントを返す ->list
+;ポイントから道が伸びているポイントを返す ->num-list
 (define (dokohe? roads c-point color)
   (flatten (for/list ((func check-funcs);上下左右が繋がっているかをチェックするクロージャのリスト
              (change `(,(- c-point 1) ,(- c-point 5) ,(+ c-point 1) ,(+ c-point 5))));↑に対応する座標変化のリスト
@@ -195,13 +195,17 @@
         change;Boolのリストを作る
         '()))));無い場合はNullを
 
+;(dokohe? *roads-p* 1 1)
+
+
 (define (longest-r roads c-point color)
   ;C-pointから伸びてる道の座標リストを作る
   ;座標リストをForで1つずつ再帰でたどる
   ;変数はLongest-c(best)　Count pre-point(来た道)
-  (let ((pre-point c-point) (longest-c 0) (count 0))
-  (if (and (= 1 (length (dokohe? roads c-point color))) (= (dokohe? roads c-point color) pre-point))
-      longest-c
+  (let ((pre-point c-point) (longest-c 0)); (count 0))
+  (if (and (= 1 (length (dokohe? roads c-point color))) (= (dokohe? roads c-point color) pre-point));終着点か？
+      (for ((next-points (remove (dokohe? roads c-point color)
+     
       
 
 
@@ -216,7 +220,7 @@
                       (loop num (cons num point-list) c-point-d color)))))))
 
 
-(roads-point-list *roads-p* 1 1)
+;(roads-point-list *roads-p* 1 1)
 
 
 #|
