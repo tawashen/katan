@@ -188,8 +188,9 @@
 (define (get-move strategy player board print);->board
   (when print (print-chessboard board))
   (let ((move (strategy player board)));strategyで出されたマス目をmoveに束縛
-    (cond ((or (not move) (= 10000 move) (= -10000 move)) (end board))
-      ((and (valid-p move) (legal-p move player board));条件どっちもオッケイでなら
+    (cond  ((= 9999 move) (end board))
+     ; ((not move) (end board))
+      ((or (valid-p move)); (legal-p move player board));条件どっちもオッケイでなら
            (when print (display (format "~a moves to ~a.~%" player move)));Printが真なら表示
            (make-move move player board));
           (else (display (format "illegal move: ~a~%" move)) (newline) ;駄目な手なら再帰
@@ -378,11 +379,16 @@
         (else 0)))
 
 (define (final-value player board)
+  (cons #f 9999))
+
+#|
   (let ((sig (signum (count-difference player board))))
   (case sig
     ((-1) losing-value)
     ((0) 0)
     ((1) winning-value))))
+
+|#
 
     
 
@@ -444,8 +450,6 @@
 |#
 
 
-(define zibun 'black)
-(define teki 'white)
 
 (define (minimax-gpt player board ply eval-fn)
   (if (= ply 0);ここが終着点で枚数を返す
@@ -474,8 +478,7 @@
                       (set! best-move move) (set! best-val (car val)))))
               (cons best-val best-move))))))
     
-(minimax-gpt 'black
-             data 3 count-difference)
+;(minimax-gpt 'black data 3 count-difference)
 
 
 ;(print-chessboard data)
@@ -571,31 +574,35 @@
 
 |#
 
-(define achievable 10000)
-(define cutoff -10000)
+;(define achievable -10000)
+;(define cutoff -10000)
 
 (define (alpha-beta player board achievable cutoff ply eval-fn);Void問題解決！Best-moveを返すのはLetの返り値としてだったのか！
   (if (= ply 0)
-      (eval-fn player board)
+      (cons (eval-fn player board) 0)
       (let ((moves (legal-moves player board)))
         (if (null? moves)
-            (if (any-legal-move? (opponent player ) board)
-                (alpha-beta (opponent player) board (- cutoff) (- achievable) (- ply 1) eval-fn)
-                (final-value player board))
-            (let ((best-move (car moves)))
+            (if (any-legal-move? (opponent player) board)
+                (alpha-beta (opponent player) board achievable cutoff (- ply 1) eval-fn);マイナスは不要と思われる
+                (cons 9999 9999)) ;(final-value player board))
+            (let* ((best-move (car moves)) (achi -10000) (cut 10000) (pre-val (cons 0 best-move)))
               (for ((move moves))
-                           ;  #:break  (>= achievable cutoff));すぐさま当てはまって終了してしまう
-                ; #:break (>= achievable cutoff)
+                   #:break (and (odd? ply) (>= achi (car pre-val)));自ターンでValがAchiより小さければαカット
+                   #:break (and (even? ply) (<= cut (car pre-val)));敵ターンでValがCutoffより大きければβカット
+                   #:break (= 9999 (car pre-val))
                 (let* ((board2 (make-move move player board))
-                       (val (alpha-beta (opponent player) board2 (- cutoff) (- achievable) (- ply 1) eval-fn)))
-                  (display "move:") (display move) (display " moves:") (display moves) (newline)
-                  (display "achi:") (display achievable) (display " cut:") (display cutoff) (display " val:") (display val) (newline)
-                  (display "player:") (display player) (newline) (print-chessboard board2)
-                ;  (when (> val achievable) (begin (set! achievable val) (set! best-move move)))
-                 ))              
-                  best-move )))));ここで返る時にはBest-moveで返ってOK、途中まではEval-fnでの数値が返るという仕組みということ！？
+                       (val (alpha-beta (opponent player) board2 achievable cutoff (- ply 1) eval-fn)))
+                ;  (display "move:") (display move) (display " moves:") (display moves) (newline)
+                ;  (display "achi:") (display achievable) (display " cut:") (display cutoff) (display " val:") (display val) (newline)
+                ;  (display "player:") (display player) (display " Ply:") (display ply)
+                ;  (newline) (print-chessboard board) (print-chessboard board2)
+                  (set! pre-val val)
+                  (when (and (odd? ply) (> (car val) achievable)) (begin (set! achi (car val)) (set! best-move move)))
+                  (when (and (even? ply) (< (car val) cut)) (begin (set! cut (car val)) (set! best-move move)))
+                  ))                         
+                  (cons achi best-move))))))
 
-;(alpha-beta 'black (initial-board) achievable cutoff 1 count-difference)
+;(alpha-beta 'black (initial-board) -10000 10000 3 count-difference)
 
 
 
@@ -677,7 +684,7 @@
 (define (alpha-beta-searcher depth eval-fn)
   (lambda (player board)
    ; (let-values (((value move)
-                  (alpha-beta player board losing-value winning-value depth eval-fn)))
+                 (cdr (alpha-beta player board losing-value winning-value depth eval-fn))))
 
 (define (alpha-beta-searcher2 depth eval-fn)
   (lambda (player board)
@@ -686,7 +693,7 @@
 
 
 
-;(othello (alpha-beta-searcher 4 weighted-squares) (alpha-beta-searcher 4 count-difference)) 
+(othello (alpha-beta-searcher 3 weighted-squares) (alpha-beta-searcher 3 count-difference)) 
 
 ;(alpha-beta4 'black (initial-board) losing-value winning-value 2 count-difference)
 

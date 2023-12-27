@@ -15,6 +15,7 @@
 
 
 ;data;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;マップの元になるデータ、各パネルに対応
 (define *map-zero* '(
                      (1 2 3 4)
                      (2 3 4 1)
@@ -22,7 +23,7 @@
                      (4 1 2 3)
                      ))
 
-
+;交差点の座標
 (define *cross-p* '(#f #f #f #f #f #f v1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f)) ;25
 
 ;(define *roads-p* '(1 1 #f #f 1 #f #f #f #f 1 #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f
@@ -31,9 +32,11 @@
 ;(define *roads-p* '(1 #f #f 1 #f 1 #f #f 1 1 #f #f #f 1 #f 1 1 #f #f #f 1 #f #f #f #f
 ;                     #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f))
 
+;道路のリスト４，５，４，５，４，５で分けられる
 (define *roads-p* '(1 2 #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 1
                      #f #f #f #f #f #f #f #f 1 #f #f #f #f #f #f)) ;
 
+;座標を実際のグラに合わせる変数
 (define (x40 x y)
   (make-posn (+ (* x 40) (* (- x 1) 40))
              (+ (* y 40) (* (- y 1) 40))))
@@ -43,6 +46,7 @@
 
 ;補助関数;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;Cross-p　x　を縦横判別するため
 (define (tate&yoko x)
   (cond ((<= x 4) 'yoko) 
         ((<= 5 x 9) 'tate) ;(and (>= x 5) (<= x 9)) 'tate) 
@@ -54,6 +58,7 @@
         ((<= 32 x 36) 'tate) ; (>= x 32) (<= x 36)) 'tate)
         (else 'yoko)))
 
+;縦の道をグラ表示するための変数
 (define (tate&yokoX x)
   (cond ((<= x 4) (+ 50 (* 80 (- x 1))))
         ((<= 5 x 9) (+ 34 (* 80 (- x 5))))
@@ -65,6 +70,8 @@
         ((<= 32 x 36)(+ 34 (* 80 (- x 32))))
         (else (+ 50 (* 80 (- x 37))))))
 
+
+;横の道を表示するための変数
 (define (tate&yokoY x)
     (cond ((<= x 4) 36)
         ((<= 5 x 9)  50)
@@ -105,10 +112,10 @@
 ;町村が置けるかチェック関数;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;隣り合う交点には町村を設置できない
-
-
 (define *cross-p2* '(#f #f #f #f v1 #f t1 #f #f #f #f #f #f #f v1 #f t1 #f #f #f #f #f #f #f #f)) ;25
-(define (tonari-VT? cross-map c-point) ;隣に町村がある？
+
+;隣に町村がある？　→Bool
+(define (tonari-VT? cross-map c-point)
   (let ((c-num (- c-point 1)))
   (if (or
            (with-handlers ((exn:fail? (const #f))) (and (list-ref cross-map (- c-num 1)) (not (= 0 (remainder c-num 5)))))
@@ -130,7 +137,7 @@
 ;point17       r24 28 29 33      P18 r25 29 30 34         16-20  7 11 12 16 gyou4
 ;p22             r33 37 38 42                             21-25  11 15 16 20 gyou5
 
-
+;現在のポイントに自道路が繋がっているか？　→Bool
 (define (road-kiteru? road-map player c-point)
   (let ((gyou-num (* 4 (quotient (- c-point 1) 5))) ;指定ポイントの存在する行数->行倍率で足す数
         (c-num (- c-point 1))) ;list-ref用に変換したC-point
@@ -151,7 +158,8 @@
 
 
 ;任意のポイントにに町村を作ることが出来るか？
-(define (can-build? cross-map road-map player c-point) ;playerが町村を作れる場所 list->list
+ ;playerが町村を作れる場所 list->list
+(define (can-build? cross-map road-map player c-point)
   (if (and (not (tonari-VT? cross-map c-point)) (road-kiteru? road-map player c-point)) #t #f))
 
 ;(map (lambda (x) (can-build? *cross-p* *roads-p* 1 x)) (iota 25 1 1))
@@ -165,11 +173,11 @@
 
 ;ポイントから伸びている道の数を返す
 (define (road-num roads c-point color)
-  (let ((gyou-num (* 4 (quotient (- c-point 1) 5))))
+ ; (let ((gyou-num (* 4 (quotient (- c-point 1) 5))));何行目かを調べて束縛
     (let loop ((funcs check-funcs) (counter 0))
       (if (null? funcs) counter
           (loop (cdr funcs) (if ((car funcs) roads c-point color)
-                                (+ counter 1) counter))))))
+                                (+ counter 1) counter)))))
 
 
 ;伸びている道が1本であれば端と判定する
@@ -183,7 +191,18 @@
 (define (dokohe? roads c-point color)
   (flatten (for/list ((func check-funcs);上下左右が繋がっているかをチェックするクロージャのリスト
              (change `(,(- c-point 1) ,(- c-point 5) ,(+ c-point 1) ,(+ c-point 5))));↑に対応する座標変化のリスト
-    (if (func roads c-point color) change '()))));本体
+    (if (func roads c-point color);4方向それぞれで道が来ているかチェックして
+        change;Boolのリストを作る
+        '()))));無い場合はNullを
+
+(define (longest-r roads c-point color)
+  ;C-pointから伸びてる道の座標リストを作る
+  ;座標リストをForで1つずつ再帰でたどる
+  ;変数はLongest-c(best)　Count pre-point(来た道)
+  (let ((pre-point c-point) (longest-c 0) (count 0))
+  (if (and (= 1 (length (dokohe? roads c-point color))) (= (dokohe? roads c-point color) pre-point))
+      longest-c
+      
 
 
 ;ポイントから道路で繋がっているポイントをリストにする
@@ -339,4 +358,4 @@
     (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number))))))
     
 
-(place-status)
+;(place-status)
