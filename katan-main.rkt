@@ -34,7 +34,7 @@
 
 ;道路のリスト４，５，４，５，４，５で分けられる
 (define *roads-p* '(1 2 #f 1 #f 1 #f #f 1 1 1 #f #f 1 #f 1 1 1 1 #f 1 #f #f 1 1
-                     #f #f #f #f #f #f #f #f 1 #f #f #f #f #f #f)) ;
+                     #f #f #f #f #f #f #f #f 1 #f #f #f #f 1 #f)) ;
 
 ;座標を実際のグラに合わせる変数
 (define (x40 x y)
@@ -195,16 +195,27 @@
         change;Boolのリストを作る
         '()))));無い場合はNullを
 
-;(dokohe? *roads-p* 1 1)
+(define (my-remove val lst)
+  (let loop ((val val) (lst lst) (acc '()))
+  (if (null? lst) (reverse acc)
+      (loop val (cdr lst) (if (equal? val (car lst)) acc (cons (car lst) acc))))))
+
+;(my-remove 1 '(1 2 3 4 5))
+
+(define final 0)
+(define (longest-r roads c-point p-point color longest count)
+      (if (and ;終着点か？
+           (= 1 (length (dokohe? roads c-point color)));向かってるポイントが１つだけ
+           (= (car (dokohe? roads c-point color)) p-point));向かってるポイントがもと来た方向だけ
+          (if (> longest final) (set! final longest) '());副作用で大域変数を更新
+          (for ((next-point (my-remove p-point (dokohe? roads c-point color))))
+            (let ((val (longest-r roads next-point c-point color (if (> count longest) count longest) (+ 1 count))))
+              (display "val ") (display val) (display " point ") (display c-point) (newline)))) longest)
+
+(longest-r *roads-p* 1 1 1 0 1)
 
 
-(define (longest-r roads c-point color)
-  ;C-pointから伸びてる道の座標リストを作る
-  ;座標リストをForで1つずつ再帰でたどる
-  ;変数はLongest-c(best)　Count pre-point(来た道)
-  (let ((pre-point c-point) (longest-c 0)); (count 0))
-  (if (and (= 1 (length (dokohe? roads c-point color))) (= (dokohe? roads c-point color) pre-point));終着点か？
-      (for ((next-points (remove (dokohe? roads c-point color)
+              
      
       
 
@@ -362,4 +373,4 @@
     (place-image/align (rectangle 380 380 "solid" "white") 400 10 "left" "top" (place-number))))))
     
 
-;(place-status)
+(place-status)
