@@ -202,6 +202,7 @@
 
 ;(my-remove 1 '(1 2 3 4 5))
 
+#|
 (define final 0)
 (define (longest-r roads c-point p-point color longest count)
       (if (and ;終着点か？
@@ -213,6 +214,36 @@
               (display "val ") (display val) (display " point ") (display c-point) (newline)))) longest)
 
 (longest-r *roads-p* 1 1 1 0 1)
+|#
+(define (longest-r2 roads c-point color)
+  (define final 0)
+  (let loop ((roads roads) (c-point c-point) (p-point c-point) (color color) (longest 0) (count 1))
+      (if (and ;終着点か？
+           (= 1 (length (dokohe? roads c-point color)));向かってるポイントが１つだけ
+           (= (car (dokohe? roads c-point color)) p-point));向かってるポイントがもと来た方向だけ
+          (if (> longest final) (set! final longest) '());副作用で大域変数を更新
+          (for ((next-point (my-remove p-point (dokohe? roads c-point color))))
+            (let ((val (loop roads next-point c-point color (if (> count longest) count longest) (+ 1 count))))
+              '()))) longest) final)
+
+;あるポイントから伸びる道のロンゲストを探す
+(define (longest-r3 roads c-point color)
+  (define final 0)
+  (let loop ((roads roads) (c-point c-point) (p-point c-point) (color color) (longest 0) (count 1))
+      (if (and ;終着点か？
+           (= 1 (length (dokohe? roads c-point color)));向かってるポイントが１つだけ
+           (= (car (dokohe? roads c-point color)) p-point));向かってるポイントがもと来た方向だけ
+          (if (> longest final) (set! final longest) '());副作用で大域変数を更新
+          (for/list ((next-point (my-remove p-point (dokohe? roads c-point color))))
+            (let ((val (loop roads next-point c-point color (if (> count longest) count longest) (+ 1 count))))
+              longest)))) final)
+  
+;全マスから自道の端を探して最長を探す
+(define (max-longest-r3 roads color)
+  (apply max (map (lambda (x) (longest-r3 *roads-p* x color))
+     (filter (lambda (y) (hazi? *roads-p* y color)) (range 1 25 1)))))
+
+(max-longest-r3 *roads-p* 1)
 
 
               
@@ -272,35 +303,35 @@
  
   
 ;画面表示関係;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define (place-map)
+(define (place-map);資源マスを表示
 (place-images/align
  (map (lambda (x) (square 80 "solid"
                          (case x
-                           ((1) "red")
-                           ((2) "white")
-                           ((3) "green")
-                           ((4) "yellow")
+                           ((1) "red");
+                           ((2) "white");羊
+                           ((3) "green");木
+                           ((4) "yellow");
                            (else "blue")))) (flatten *map-zero*))
   (flatten (for/list ((i (iota 4 1 1)))
              (for/list ((j (iota 4 1 1)))
     (x40 i j)))) "left" "top"
- (rectangle 800 400 "solid" "blue")))
+ (rectangle 800 400 "solid" "blue")));青バックを表示
 
 
-(define (place-road)
+(define (place-road);道を表示
   (place-images/align
-    (let loop ((lst *roads-p*) (count 1) (acc '()))
+    (let loop ((lst *roads-p*) (count 1) (acc '()));グラフィックループ
       (if (null? lst)
           (reverse acc)
           (loop (cdr lst) (+ count 1) (if (car lst) (cons (case (tate&yoko count)
-                                                      ((yoko) (rectangle 60 10 "solid" (case (car lst)
+                                                      ((yoko) (rectangle 60 10 "solid" (case (car lst);道が横向きの場合
                                                                                          ((1) "black")
                                                                                          ((2) "blue"))))
-                                                      ((tate) (rectangle 10 60 "solid" (case (car lst)
+                                                      ((tate) (rectangle 10 60 "solid" (case (car lst);道が縦向きの場合
                                                                                          ((1) "black")
                                                                                          ((2) "blue"))))) acc)
                                           acc))))
-    (let loopB ((lst *roads-p*) (count 1) (acc '()))
+    (let loopB ((lst *roads-p*) (count 1) (acc '()));座標ループ
       (if (null? lst)
           (reverse acc)
           (loopB (cdr lst) (+ count 1)
@@ -310,9 +341,9 @@
    "left" "top" (place-map)))
 
 
-(define (place-town)
+(define (place-town);町を表示
   (place-images/align
-   (let loopA ((lst *cross-p*) (acc '()))
+   (let loopA ((lst *cross-p*) (acc '()));グラフィックループ
      (if (null? lst) (reverse acc)
          (loopA (cdr lst) (if (car lst)
                               (cons (case (car lst)
@@ -321,7 +352,7 @@
                                       (else (circle 10 "solid" "blue"))) acc)
                               acc))))
    
-   (let loopB ((lst *cross-p*) (count 1) (acc '()))
+   (let loopB ((lst *cross-p*) (count 1) (acc '()));座標ループ
      (if (null? lst) (reverse acc)
          (loopB (cdr lst) (+ count 1) (if (car lst)
                                           (cons (make-posn (+ 30 (* 80 (cond
@@ -336,7 +367,7 @@
 (define number-list '(1 2 3 4 5 5 6 6 7 8 8 9 9 10 11 12))
 (define number-list-S (shuffle number-list))
 
-(define (place-number)
+(define (place-number);マスのナンバー表示
   (place-images/align  
    (map (lambda (x) (text (number->string x) 25 "black")) number-list-S)
    (let loopB ((lst number-list-S) (count 1) (acc '()))
@@ -352,8 +383,11 @@
    "left" "top" (place-town)))
 
 
+(define (color-to-num color)
+  (case color
+    (("black") 1)))
 
-(define (place-status)
+(define (place-status);右枠のステータス表示
   (match-let (((PLAYER NO COLOR SCORE CARDS) PLAYER-1))
   (match-let (((CARD WOOD BLOCK IRON SHEEP) CARDS))
     (place-images/align
@@ -361,7 +395,7 @@
   (text (format "PLAYER~a" NO) 15 COLOR)
   (text (format "CARDS 木:~a 土:~a 鉄:~a 羊:~a" WOOD BLOCK IRON SHEEP) 15 COLOR)
   (text (format "SCORE: ~a" SCORE) 15 COLOR)
-  (text (format "MAX-ROAD-LENGTH: ~a" (my-longest-road *roads-p* 1 1)) 15 COLOR)
+  (text (format "MAX-ROAD-LENGTH: ~a" (max-longest-r3 *roads-p* (color-to-num COLOR))) 15 COLOR)
   )
     (list
      (make-posn 420 40)
