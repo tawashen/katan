@@ -1328,22 +1328,7 @@
                          (values answer1 answer2)))))))))))
 
 
-  #|
-  (match-let (((WORLD PLAYERS-LIST C-MAP R-MAP PHASE TURN DISP DICE D-CARDS-SET ROBBER) world))
-    (match-let (((PLAYER NO COLOR SCORE CARDS D-CARDS KNIGHT) (list-ref PLAYERS-LIST (car PHASE))))
-      (match-let (((CARD WOOD BRICK SHEEP WHEAT IRON) CARDS))
-        (let ((road-ok-points (make-road-ok-points C-MAP R-MAP NO)))
-          (displayln (place-status (WORLD PLAYERS-LIST C-MAP R-MAP PHASE TURN 'ROAD-KOHO DICE D-CARDS-SET ROBBER)))
-          (displayln (cons "どこに道路を建設する？1つ目　　" (map (lambda (x) (number->string x)) road-ok-points)))
-          (let ((answer1 (string->number (read-line))))
-            (cond ((not (member answer1 road-ok-points)) (display-use-road-menu world))
-                (else
-                 (displayln (cons "どこに道路を建設する？2つ目　　"
-                                 (map (lambda (x) (number->string x)) (remove answer1 road-ok-points))))
-                (let ((answer2 (string->number (read-line))))
-                  (if (not (member answer2 (remove answer1 road-ok-points))) (display-use-road-menu world)
-                      (values answer1 answer2)))))))))))
-|#
+
 
 (define (use-road-card world)
   (match-let (((WORLD PLAYERS-LIST C-MAP R-MAP PHASE TURN DISP DICE D-CARDS-SET ROBBER) world))
@@ -1376,9 +1361,6 @@
             (if (not (member answer1 index))
                 (display-use-knight-menu1 world)
                 answer1)))))))
-
-;(define (four-corner? C-MAP panel-index panel-kind)
-;'((1 . "v1")) for-corner?で返って来る値　必要なのはCDRのみ
 
 (define (display-use-knight-menu2 world answer1);->追い払った先のパネルの四隅にある町村を持つプレイヤーを選ぶ　->Player-num
   (match-let (((WORLD PLAYERS-LIST C-MAP R-MAP PHASE TURN DISP DICE D-CARDS-SET ROBBER) world))
@@ -1437,7 +1419,9 @@
              (new-D-CARDS-SET (cdr D-CARDS-SET));WORLDのD-CARDS-SETから減らす
              (new-cards (apply CARD (map - (struct->list CARDS) develop-pattern)));使った資源カードを減らす
              (new-player
-              (PLAYER NO COLOR SCORE new-cards (cons (cons choiced-card (car D-CARDS)) (cdr D-CARDS)) KNIGHT)));(('Knight) . ('Knight 'Discover ....)
+              (PLAYER NO COLOR SCORE new-cards
+                      (cons (cons choiced-card (car D-CARDS)) (cdr D-CARDS)) KNIGHT)));(('Knight) . ('Knight 'Discover ....)
+        (displayln (format "PLAYER-~aは　~aカードを手にれいた！" NO choiced-card))
         (main-loop-read;develop-cardは一度しか引けないためLoopへ
          (WORLD (list-set PLAYERS-LIST (car PHASE) new-player) C-MAP R-MAP PHASE TURN DISP DICE　new-D-CARDS-SET ROBBER))))))
   
