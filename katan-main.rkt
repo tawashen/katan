@@ -16,7 +16,7 @@
 (define PLAYER-3-CARDS (CARD 0 0 0 0 0))
 
 (struct PLAYER (NO COLOR SCORE CARDS D-CARDS KNIGHT)#:transparent);knight=盗賊を退治した回数
-(define PLAYER-0 (PLAYER 0 "green" 0 PLAYER-0-CARDS '(() . (Roads Victory Victory Victory Victory)) 0))
+(define PLAYER-0 (PLAYER 0 "green" 0 PLAYER-0-CARDS '(() . ()) 0))
 (define PLAYER-1 (PLAYER 1 "red" 0 PLAYER-1-CARDS '(() . ()) 0))
 (define PLAYER-2 (PLAYER 2 "orange" 0 PLYAER-2-CARDS '(() . ()) 0))
 (define PLAYER-3 (PLAYER 3 "blue" 0 PLAYER-3-CARDS '(() . ()) 0))
@@ -1007,20 +1007,21 @@
 
 
 ;trade可能か？どれかのカードが４枚以上ある
-(define (trade-ok? player-cards)
+(define (trade-ok? player-cards PLAYER C-MAP)
   (let loop ((count (range 0 5)) (result '()))
     (if (null? count) (member #t result)
         (loop (cdr count)
-              (cons (if (>= (list-ref player-cards (car count)) 4) #t #f) result)))))
+              (cons (if (>= (list-ref player-cards (car count))
+                            (if (trade-cost-half? PLAYER C-MAP) 2 4)) #t #f) result)))))
 
 ;wood brick sheep wheat iron
 ;パス　交易　村　町　道　発展カードが作れるならメニューに表示
-(define (display-menu v-p t-p r-p player-cards D-CARDS);->(1 . "1:Trade  ") (3 . "3:Make-town  ") ..
+(define (display-menu v-p t-p r-p player-cards D-CARDS PLAYER C-MAP);->(1 . "1:Trade  ") (3 . "3:Make-town  ") ..
   (let loop ((count (range 0 7)) (result '()))
     (if (null? count) (reverse result)
         (loop (cdr count) (case (car count)
                             ((0) (cons (cons 0 "0:Pass ") result))
-                            ((1) (if (trade-ok? player-cards) (cons (cons 1 "1:Trade ") result) result))
+                            ((1) (if (trade-ok? player-cards PLAYER C-MAP) (cons (cons 1 "1:Trade ") result) result))
                             ((2) (if (and
                                       (material-check player-cards village-pattern)
                                       (not (null? v-p))) (cons (cons 2 "2:Make-village ") result) result))
@@ -1033,7 +1034,8 @@
                             ((5) (if  (material-check player-cards develop-pattern)
                                       (cons (cons 5 "5:Get-develop-card ") result) result))
                             ((6) (if (not (null? (filter (lambda (x) (not (equal? 'Victory x))) (cdr D-CARDS))))
-                                     (cons (cons 6 "6:Use-develop-card") result) result))
+                                     (cons (cons 6 "6:Use-develop-card ") result) result))
+                            ((7) (if (> (for/sum ((i player-cards)) i) 0) (cons (cons 7 "7:Negotiate") result) result))
                             (else result))))))
 
 
@@ -1148,9 +1150,9 @@
                (town-ok-points (make-town-ok-points C-MAP R-MAP NO))
                (road-ok-points (make-road-ok-points C-MAP R-MAP NO))
                (menu-text (map (lambda (x) (cdr x))
-                               (display-menu village-ok-points town-ok-points road-ok-points (struct->list CARDS) D-CARDS)))
+                               (display-menu village-ok-points town-ok-points road-ok-points (struct->list CARDS) D-CARDS NO C-MAP)))
                (menu-number (map (lambda (x) (car x))
-                                 (display-menu village-ok-points town-ok-points road-ok-points (struct->list CARDS) D-CARDS))))
+                                 (display-menu village-ok-points town-ok-points road-ok-points (struct->list CARDS) D-CARDS NO C-MAP))))
           (displayln (format "PLAYER-~aは何をしますか？ ~a"  NO menu-text))         
           (let ((answer (string->number (read-line))))            
             (cond ((not (member answer menu-number)) (main-loop-read world))
@@ -1161,7 +1163,13 @@
                   ((= 4 answer) (make-road world));道
                   ((= 5 answer) (get-d-card world));Develop-cardを引く関数
                   ((= 6 answer) (use-develop-card world));Develop-cardを使う関数
+                  ((= 7 answer) (negotiate world));Player同士の交渉
                   (else (main-loop-read world)))))))));念の為
+
+;negosiate;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (negotiate world)
+  
+
 
 ;use-develop-card;;;;;;;;;;;;;;;;;;;;;
 
@@ -1507,13 +1515,22 @@
 
 ;trade;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define (trade-cost-half? PLAYER C-MAP)
+  (let ((yosumi-list (map (lambda (y) (string-delete char-lower-case? y))
+                          (map (lambda (x) (symbol->string x))
+                               (filter (lambda (x) x)
+                                       (for/list ((zahyou '(0 4 20 24)))
+                                                        (list-ref C-MAP zahyou)))))))                                                       
+    (if (member (number->string PLAYER) yosumi-list) #t #f)))
 
-(define (display-trade-menu1 cards)
+;四隅に町村がある場合は港なのでトレードコスト半分
+(define (display-trade-menu1 cards PLAYER C-MAP);Trade-half用に Player C-map 追加
   (let loop ((cards cards) (count 0) (result '()))
     (if (null? cards) (cons "どのカードを手放しますか?  "
                             (map (lambda (x) (string-append (format "~a:~a" (car x) (cdr x)))) (reverse result)))
         (loop (cdr cards) (+ count 1)
-              (if (>= (car cards) 4)
+              (if (>= (car cards)
+                      (if (trade-cost-half? PLAYER C-MAP) 2 4));変更                
                   (cons (assoc count *material-list*) result)
                   result)))))
 
@@ -1522,21 +1539,24 @@
 
 
 
-(define (trade-4to1 world)
+(define (trade-4to1 world);Trade-half　改造
   (match-let (((WORLD PLAYERS-LIST C-MAP R-MAP PHASE TURN DISP DICE　D-CARDS-SET ROBBER) world))
     (match-let (((PLAYER NO COLOR SCORE CARDS D-CARDS KNIGHT) (list-ref PLAYERS-LIST (car PHASE))))
       (match-let (((CARD WOOD BRICK SHEEP WHEAT IRON) CARDS))
         (define (menu1 CARDS)
-          (displayln (display-trade-menu1 (struct->list CARDS)))
+          (displayln (display-trade-menu1 (struct->list CARDS) NO C-MAP));Trade-half用に　Player C-map 追加
           (let ((answer1 (string->number (read-line))))
             (if (with-handlers ((exn:fail? (const #f)))
-                  (not (>= (list-ref (struct->list CARDS) answer1) 4))) (trade-4to1 world)
+                  (not (>= (list-ref (struct->list CARDS) answer1)
+                           (if (trade-cost-half? NO C-MAP) 2 4)))) (trade-4to1 world)
                                                                         (menu2 CARDS answer1))))
         (define (menu2 CARDS answer1)
           (displayln (display-trade-menu2))
           (let ((answer2 (string->number (read-line))))
             (if (not (member answer2 (range 0 5))) (menu2 CARDS answer1)
-                (let* ((new-cards1 (list-set (struct->list CARDS) answer1 (- (list-ref (struct->list CARDS) answer1) 4)))
+                (let* ((new-cards1 (list-set (struct->list CARDS) answer1
+                                             (- (list-ref (struct->list CARDS) answer1)
+                                                (if (trade-cost-half? NO C-MAP) 2 4))));Trade-half用に変更
                        (new-cards2 (list-set new-cards1 answer2 (+ (list-ref new-cards1 answer2) 1)))
                        (new-player (PLAYER NO COLOR SCORE (apply CARD new-cards2) D-CARDS KNIGHT))
                        (new-players-list (list-set PLAYERS-LIST (car PHASE) new-player))
