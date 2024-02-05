@@ -264,7 +264,6 @@
 ;wood brick sheep wheat iron desert
 
 
-
 (define wood-image (bitmap/file "pictures/wood.png"))
 (define brick-image (bitmap/file "pictures/brick.png"))
 (define sheep-image (bitmap/file "pictures/sheep.png"))
@@ -281,7 +280,7 @@
    (flatten (for/list ((i (iota 4 1 1)))
               (for/list ((j (iota 4 1 1)))
                 (x40 i j)))) "left" "top"
-                             (rectangle 800 400 "solid" "pink")));青バックを表示
+                             (rectangle 800 400 "solid" "pink")));背景
 
 
 (define (place-road world);道を表示
