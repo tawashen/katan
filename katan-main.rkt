@@ -1168,6 +1168,17 @@
 
 ;negosiate;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (negotiate world)
+  (match-let (((WORLD PLAYERS-LIST C-MAP R-MAP PHASE TURN DISP DICE　D-CARDS-SET ROBBER) world))
+    (match-let (((PLAYER NO COLOR SCORE CARDS D-CARDS KNIGHT) (list-ref PLAYERS-LIST (car PHASE))))
+      (match-let (((CARD WOOD BRICK SHEEP WHEAT IRON) CARDS))
+        (let* ((answer-target (display-nego-menu1 world));誰を選ぶか index
+               (old-target-player (list-ref PLAYERS-LIST answer-target));target-player
+               (answer-my-card (display-nego-manu2 world answer-player));何を差し出すか card (num . kind)
+               (answer-target-card (display-nego-menu3 world));何を受け取るか card (num . card)
+               (new-my-cards ( (struct->list CARDS) 
+               (new-my-PLAYER (PLAYER-0 NO COLOR SCORE CARDS D-CARDS KNIGHT
+               (new-target-cards (list-set                          
+               
   
 
 
