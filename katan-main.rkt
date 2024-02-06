@@ -1167,6 +1167,28 @@
                   (else (main-loop-read world)))))))));念の為
 
 ;negosiate;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (display-negotiate-menu world)
+  (match-let (((WORLD PLAYERS-LIST C-MAP R-MAP PHASE TURN DISP DICE D-CARDS-SET ROBBER) world))
+    (match-let (((PLAYER NO COLOR SCORE CARDS D-CARDS KNIGHT) (list-ref PLAYERS-LIST (car PHASE))))
+      (displayln (format "PLAYER-~aは誰と交渉しますか？" NO))
+      (let ((answer-target (string->number (read-line))))
+        (if (member answer-target (remove NO (range 0 (length PHASE)))) (display-negotiate-menu world)
+            (for-each display (cons (format "PLAYER-~aは何のカードを差し出しますか？" NO)
+                             (for/list ((index (range 0 5)))
+                               (if (not (equal? 0 (list-ref (struct->list CARDS) index)))
+                                   (cons index (cdr (list-ref *material-list* index))))))) (newline) 
+            (let ((answer-my-card (string->number (read-line))))
+              (if (<= (list-ref (struct->list CARDS) answer-my-card) 0) (display-negotiate-menu world)
+                  (displayln (format "何枚差し出しますか？"))
+                  (let ((answer-numbers (string->number (read-line))))
+                    (if (< (list-ref (struct->list CARDS) answer-my-card) answer-numbers) (display-negotiate-menu world)
+                        (for-eacj display (cons (format "PLAYER-~aは何のカードを差し出しますか？" answer-target)
+                                                (if (not (equal? 0 (list-ref (struct->list (
+                        (let ((answer-target-card 
+
+
+      
 (define (negotiate world)
   (match-let (((WORLD PLAYERS-LIST C-MAP R-MAP PHASE TURN DISP DICE　D-CARDS-SET ROBBER) world))
     (match-let (((PLAYER NO COLOR SCORE CARDS D-CARDS KNIGHT) (list-ref PLAYERS-LIST (car PHASE))))
