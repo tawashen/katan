@@ -1183,7 +1183,7 @@
                   (displayln (format "何枚差し出しますか？"))
                   (let ((answer-numbers (string->number (read-line))))
                     (if (< (list-ref (struct->list CARDS) answer-my-card) answer-numbers) (display-negotiate-menu world)
-                        (for-eacj display (cons (format "PLAYER-~aは何のカードを差し出しますか？" answer-target)
+                        (for-each display (cons (format "PLAYER-~aは何のカードを差し出しますか？" answer-target)
                                                 (if (not (equal? 0 (list-ref (struct->list (
                         (let ((answer-target-card 
 
