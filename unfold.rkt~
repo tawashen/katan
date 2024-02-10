@@ -131,15 +131,13 @@
   (case-lambda
     ((n)
      (let ((i 0))
-       (printf "~a~%" ;(last
-               (unfold (lambda (x) (> i n));end
-                                    (lambda (x) (set! i (+ i (read)));proc
+       (printf "~a~%" (last (unfold (lambda (x) (> i n))
+                                    (lambda (x) (set! i (+ i (read)))
                                       i)
-                                    identity;step
-                                    0))));initi
+                                    identity
+                                    0)))))
     (()
      (thirteen 100))))
-(thirteen)
  
 #| 練習問題 14
    ストライク・カウントを数えるプログラムを作成しなさい。
@@ -162,20 +160,20 @@
       (let ((i (read)))
         (match v
           ((vector strike ball)
-           (vector-set! v (sub1 i) (add1 (vector-ref v (sub1 i)))) ;(vector st ba) (vector st ba) ...
+           (vector-set! v (sub1 i) (add1 (vector-ref v (sub1 i))))
            v))))
     (apply printf "~aボール, ~aストライク~%"
            (reverse
             (vector->list
              (last
-              (unfold (lambda (x);end
+              (unfold (lambda (x)
                         (match x
                           ((vector strike ball)
                            (or (= strike strike-max)
                                (= ball ball-max)))))
-                      identity ;proc　そのまま返すことでListになる？
-                      foo;step クロージャ？ 引数は1つ
-                      (foo (vector 0 0)))))))));initial
+                      identity
+                      foo
+                      (foo (vector 0 0)))))))))
  
 #| 練習問題 15
    前の問題に次の修正を加えなさい。
@@ -190,7 +188,7 @@
       (let ((i (read)))
         (match v
           ((vector strike ball)
-           (with-handlers ((exn:fail?;3のエラーで発動
+           (with-handlers ((exn:fail?
                             (lambda (exn)
                               (when (< strike 2)
                                 (vector-set! v 0 (add1 (vector-ref v 0))))
