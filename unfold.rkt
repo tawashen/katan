@@ -139,7 +139,7 @@
                                     0))));initi
     (()
      (thirteen 100))))
-(thirteen)
+;(thirteen)
  
 #| 練習問題 14
    ストライク・カウントを数えるプログラムを作成しなさい。
@@ -214,19 +214,41 @@
    入力された数が素数かどうかを判定するプログラムを作成しなさい。
 ※ 	判定する数は 4 以上としてよい。 |#
 (define (sixteen n)
-  (= (length (unfold (lambda (x)
+  (= (length (unfold (lambda (x);end
                        (> x n))
-                     (lambda (x)
-                       (if (> (expt x 2) n)
-                           n
-                           x))
-                     (lambda (x)
+                     (lambda (x);proc
+                       (if (> (expt x 2) n);initiの2乗が任意より大きかったら
+                           n;任意の数
+                           x));でないならIniti
+                     (lambda (x);step
                        (let loop ((x x))
-                         (if (zero? (modulo n x))
-                             (add1 x)
-                             (loop (add1 x)))))
-                     2)) 1))
- 
+                         (if (zero? (modulo n x));任意の数をinitiで割り切れる
+                             (add1 x);add1
+                             (loop (add1 x)))));割り切れるまでadd1
+                     2));initi x?
+     1));length = 1 つまり生成されたリストの要素が１つだけの場合　`(,n)の場合のみ
+
+
+(define (sixteenL n)
+ ; (= (length
+      (unfold (lambda (x);end
+                       (> x n))
+                     (lambda (x);proc
+                       x)
+                     ;  (if (> (expt x 2) n);initiの2乗が任意より大きかったら
+                     ;      n;任意の数
+                      ;     x));でないならIniti
+                     (lambda (x);step
+                       (let loop ((x x))
+                         (if (zero? (modulo n x));任意の数をinitiで割り切れる
+                             (add1 x);add1
+                             (loop (add1 x)))));割り切れるまでadd1
+                     2));initi x?
+    ; 1));length = 1 つまり生成されたリストの要素が1つだけの場合 `(,n)の場合のみ
+(sixteenL 71)
+
+
+
 #| 練習問題 17
    2 以上の数値を入力し、素因数分解した結果を表示しなさい。
    例:
