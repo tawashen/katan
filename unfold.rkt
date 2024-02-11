@@ -245,7 +245,7 @@
                              (loop (add1 x)))));割り切れるまでadd1
                      2));initi x?
     ; 1));length = 1 つまり生成されたリストの要素が1つだけの場合 `(,n)の場合のみ
-(sixteenL 71)
+;(sixteenL 71)
 
 
 
@@ -257,17 +257,37 @@
 (define (seventeen n)
   (define (foo x)
     (let loop ((x x))
-      (cond ((and (sixteen x) (zero? (modulo n x)))
-             (set! n (quotient n x))
-             x)
+      (cond ((and (sixteen x) (zero? (modulo n x)));素数か割り切れる場合
+             (set! n (quotient n x));数値を商に書き換える
+             x);xを返す
             (else (loop (add1 x))))))
   (for-each (lambda (x)
               (printf "~a " x)) (unfold (lambda (x)
-                                          (> x (ceiling (sqrt n))))
-                                        foo
+                                          (> x (ceiling (sqrt n))));End　Initi>数値の平方根切り上げ
+                                        foo;Proc　数値を変更しつつ割り切れる素数をリスト
                                         identity
                                         2))
   (newline))
+
+
+(define (seventeen2 n)
+  (define (foo x)
+    (let loop ((x x))
+      (cond ((and (sixteen x) (zero? (modulo n x)));素数か割り切れる場合
+             (set! n (quotient n x));数値を商に書き換える
+             x);xを返す
+            (else (loop (add1 x))))))
+  (for-each (lambda (x)
+              (printf "~a " x)) (unfold (lambda (x)
+                                        ;  (> x (ceiling (sqrt n))));End　Initi>数値の平方根切り上げ
+                                          (sixteen n))
+                                        foo;Proc　数値を変更しつつ割り切れる素数をリスト
+                                        identity
+                                        2))
+  (newline))
+
+
+
  
 #| 練習問題 18
    九九表(一の段~九の段)を表示するプログラムを作成しなさい。
@@ -275,27 +295,29 @@
 (define (eighteen)
   (display
    (string-join
-    (unfold (lambda (x)
+    (unfold (lambda (x);end 
               (> (cadr x) 9))
-            (lambda (x)
+            (lambda (x);proc
               (let ((x (car x)) (y (cadr x)))
                 (format "~a × ~a = ~a~a" x y (* x y) (if (= x 9) "\n" " "))))
-            (lambda (x)
+            (lambda (x);step
               (let ((x (car x)) (y (cadr x)))
                 (if (< x 9)
                     `(,(add1 x) ,y)
                     `(1 ,(add1 y)))))
-            '(1 1)) ""))
+            '(1 1)) ""));init 
   (newline))
+
+(eighteen)
  
 #| 練習問題 19
 数値を繰り返して入力し、0 が入力されたら入力を止め、それまでの合計を表示するプログラムを作成しなさい。 |#
 (define (nineteen)
-  (display (apply + (unfold zero?
-                            identity
+  (display (apply + (unfold zero?;end
+                            identity;proc
                             (lambda (x)
-                              (read))
-                            (read))))
+                              (read));step
+                            (read))));initi
   (newline))
  
 #| 練習問題 20
@@ -326,6 +348,7 @@ $$$$ |#
                                   (string-append (make-string x #\$) "\n"))
                                 add1
                                 1) "")))
+;(twentyOne 10)
  
 #| 練習問題 22
    サイズを示す数値を入力し、何等かの文字で、そのサイズの×印を表示するプログラムを作成しなさい。
@@ -354,6 +377,7 @@ X   X  |#
                                     (string-append s "\n")))
                                 add1
                                 0) "")))
+(twentyTwo 10)
  
 #| 練習問題 23
    フィボナッチ数列を表示するプログラムを作成しなさい。
