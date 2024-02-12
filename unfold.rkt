@@ -257,8 +257,9 @@
 (define (seventeen n)
   (define (foo x)
     (let loop ((x x))
-      (cond ((and (sixteen x) (zero? (modulo n x)));素数か割り切れる場合
+      (cond ((and (sixteen x) (zero? (modulo n x)));素数かつ割り切れる場合
              (set! n (quotient n x));数値を商に書き換える
+             (displayln (cons x n))
              x);xを返す
             (else (loop (add1 x))))))
   (for-each (lambda (x)
@@ -269,6 +270,7 @@
                                         2))
   (newline))
 
+(seventeen 2024)
 
 (define (seventeen2 n)
   (define (foo x)
@@ -280,13 +282,14 @@
   (for-each (lambda (x)
               (printf "~a " x)) (unfold (lambda (x)
                                         ;  (> x (ceiling (sqrt n))));End　Initi>数値の平方根切り上げ
-                                          (sixteen n))
+                                         ; (sixteen n))
+                                          (= n 1))
                                         foo;Proc　数値を変更しつつ割り切れる素数をリスト
                                         identity
                                         2))
   (newline))
 
-
+;(seventeen2 2024)
 
  
 #| 練習問題 18
@@ -308,7 +311,7 @@
             '(1 1)) ""));init 
   (newline))
 
-(eighteen)
+;(eighteen)
  
 #| 練習問題 19
 数値を繰り返して入力し、0 が入力されたら入力を止め、それまでの合計を表示するプログラムを作成しなさい。 |#
@@ -377,7 +380,7 @@ X   X  |#
                                     (string-append s "\n")))
                                 add1
                                 0) "")))
-(twentyTwo 10)
+;(twentyTwo 10)
  
 #| 練習問題 23
    フィボナッチ数列を表示するプログラムを作成しなさい。
