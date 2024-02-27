@@ -50,6 +50,7 @@
   (let ((point (vector-last world)))
     (display point)
     (let ((command (read-line)) (vec (vector-copy world)))
+      (cond ((= 1 (string-length command))
       (case command
         ((">") (@> vec))
         (("<") (@< vec))
@@ -58,7 +59,14 @@
         ((".") (|@.| vec))
         ((",") (|@,| vec))
         (("[") (|[| vec))
-        (else (brain-eval world))))))
+        (else (brain-eval world))))
+            (else (cond
+                    ((equal? #\+ (string-ref command 0))
+                     (let ((command-list (make-list (string-length command) @+)))
+                       (for/fold ((new-vec vec)) ((command command-list)) (brain-eval new-vec))))
+                    ((equal? #\- (string-ref command 0))
+                     (let ((command-list (make-list (string-length command) @-)))
+                       (for/fold ((new-vec vec)) ((command command-list)) (brain-eval new-vec))))))))))
    
         
    
