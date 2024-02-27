@@ -48,32 +48,26 @@
 
 (define (brain-eval world)
   (let ((point (vector-last world)))
-   ; (display point)
     (let ((command (read-line)) (vec (vector-copy world)))
       (cond ((= 1 (string-length command))
-      (case command
-        (("p") (display (vector-ref vec (vector-last vec))) (brain-eval vec))
-        ((">") (brain-eval (@> vec)))
-        (("<") (brain-eval (@< vec)))
-        (("+") (brain-eval (@+ vec)))
-        (("-") (brain-eval (@- vec)))
-        ((".") (|@.| vec))
-        ((",") (|@,| vec))
-        (("[") (|[| vec))
-        (else (brain-eval world))))
-            (else (cond
-                    ((equal? #\+ (string-ref command 0))
-                     (let ((command-list (make-list (string-length command) @+)))
-                       (let ((last-vec (for/fold ((new-vec vec)) ((command2 command-list)) (command2 new-vec))))
-                         (brain-eval last-vec))))
-                    ((equal? #\- (string-ref command 0))
-                     (let ((command-list (make-list (string-length command) @-)))
-                       (let ((last-vec (for/fold ((new-vec vec)) ((command2 command-list)) (command2 new-vec))))
-                         (brain-eval last-vec))))))))))
-        
-   
-  
-      ;  ))))
+             (case command
+               (("p") (display (vector-ref vec (vector-last vec))) (brain-eval vec))
+               ((">") (brain-eval (@> vec)))
+               (("<") (brain-eval (@< vec)))
+               (("+") (brain-eval (@+ vec)))
+               (("-") (brain-eval (@- vec)))
+               ((".") (|@.| vec))
+               ((",") (|@,| vec))
+               (("[") (|[| vec))
+               (else (brain-eval world))))
+            (else
+             (let ((command-list (make-list (string-length command)
+                                            (case (string-ref command 0)
+                                              ((#\+) @+)
+                                              ((#\-) @-)))))
+               (let ((last-vec (for/fold ((new-vec vec)) ((command2 command-list)) (command2 new-vec))))
+                 (brain-eval last-vec))))))))
+
 
 (brain-read)
         
