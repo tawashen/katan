@@ -48,10 +48,11 @@
 
 (define (brain-eval world)
   (let ((point (vector-last world)))
-    (display point)
+   ; (display point)
     (let ((command (read-line)) (vec (vector-copy world)))
       (cond ((= 1 (string-length command))
       (case command
+        (("p") (display (vector-ref vec (vector-last vec))) (brain-eval vec))
         ((">") (@> vec))
         (("<") (@< vec))
         (("+") (@+ vec))
@@ -62,12 +63,23 @@
         (else (brain-eval world))))
             (else (cond
                     ((equal? #\+ (string-ref command 0))
-                     (let ((command-list (make-list (string-length command) @+)))
-                       (for/fold ((new-vec vec)) ((command command-list)) (brain-eval new-vec))))
+                     (let loop ((num (string-length command)) (vec vec))
+                       (if (zero? num) (brain-eval vec)
+                           (loop (- num 1)
+                                 (begin (vector-set! vec (vector-last vec) (+ (vector-ref vec (vector-last vec)) 1)) vec)))))
+                    ; (let loop ((command-list (make-list (string-length command) @+)) (result vec))
+                     ;  (if (null? command-list) (brain-eval result)
+                       ;    (loop (cdr command-list) ((car command-list) result)))))
+                    ; (vector-set! vec (vector-last vec) (+ (vector-ref vec (vector-last vec)) 1))
+                     ;  (display command-list)
+                     ;  (let ((last-vec (for/fold ((new-vec vec)) ((command2 command-list)) (command2 new-vec))))
+                       ;  (brain-eval last-vec))))
                     ((equal? #\- (string-ref command 0))
-                     (let ((command-list (make-list (string-length command) @-)))
-                       (for/fold ((new-vec vec)) ((command command-list)) (brain-eval new-vec))))))))))
-   
+                    (let loop ((num (string-length command)) (vec vec))
+                       (if (zero? num) (brain-eval vec)
+                           (loop (- num 1)
+                                 (begin (vector-set! vec (vector-last vec) (- (vector-ref vec (vector-last vec)) 1)) vec)))))
+                    ))))))
         
    
   
