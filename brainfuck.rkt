@@ -12,16 +12,12 @@
 
 (define @> (lambda (vec)
             (vector-set! vec (- (vector-length vec) 1) (+ (vector-last vec) 1)) vec))
-           ; (brain-eval vec)))
 (define @< (lambda (vec)
             (vector-set! vec (- (vector-length vec) 1) (- (vector-last vec) 1)) vec))
-          ;  (brain-eval vec)))
 (define @+ (lambda (vec)
             (vector-set! vec (vector-last vec) (+ (vector-ref vec (vector-last vec)) 1)) vec))
-          ;  (brain-eval vec)))
 (define @- (lambda (vec)
             (vector-set! vec (vector-last vec) (- (vector-ref vec (vector-last vec)) 1)) vec))
-           ; (brain-eval vec)))
 (define |@.| (lambda (vec)
               (begin (displayln (integer->char (vector-ref vec (vector-last vec)))) (brain-eval vec))))
 (define |@,| (lambda (vec)
@@ -29,19 +25,26 @@
               (let ((new-v (string-ref (read-line) 0)))
                 (vector-set! vec (vector-last vec) (char->integer new-v)) (brain-eval vec))))
 (define |[| (lambda (vec)
-              (let loop ((answer (read-line)) (acc '()))
+              (let loopA ((answer (read-line)) (command-list '()))
                 (case answer
-                  ((">") (loop (read-line) (cons @> acc)))
-                  (("<") (loop (read-line) (cons @< acc)))
-                  (("+") (loop (read-line) (cons @+ acc)))
-                  (("-") (loop (read-line) (cons @- acc)))
-                  ((".") (loop (read-line) (cons |@.| acc)))
-                  ((",") (loop (read-line) (cons |@,| acc)))
-                  (("]") (let loop ((commands (reverse acc)) (new-vec vec))
-                           (if (zero? (vector-ref new-vec (vector-last new-vec))) new-vec
-                               (loop (cdr commands) ((car commands) new-vec)))))
-                  (else (loop (read-line) acc))))))
-                  
+                  ((">") (loopA (read-line) (cons @> command-list)))
+                  (("<") (loopA (read-line) (cons @< command-list)))
+                  (("+") (loopA (read-line) (cons @+ command-list)))
+                  (("-") (loopA (read-line) (cons @- command-list)))
+                  ((".") (loopA (read-line) (cons |@.| command-list)))
+                  ((",") (loopA (read-line) (cons |@,| command-list)))
+                  (("]") (let ((point (vector-last vec)))
+                           ;  (brain-eval                            
+                           ; (for/fold ((new-vec vec)) ((new-command command-list)) (new-command new-vec)))))))) ;fold-pattern
+                           (let loopC ((vec vec))
+                             (if (zero? (vector-ref vec point)) vec
+                                 (loopC 
+                                  (let loopB ((command (reverse command-list)) (new-vec vec))
+                                    (let ((new-point (vector-last new-vec)))
+                                      (if (null? command) (loopC new-vec)
+                                          (loopB (cdr command) ((car command) new-vec))))))))))
+                  (else (loopA (read-line) command-list))))))
+                 
                   
                 
               
