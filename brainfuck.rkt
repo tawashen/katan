@@ -26,27 +26,35 @@
                 (vector-set! vec (vector-last vec) (char->integer new-v)) (brain-eval vec))))
 (define |[| (lambda (vec)
               (let loopA ((answer (read-line)) (command-list '()))
-                (case answer
-                  ((">") (loopA (read-line) (cons @> command-list)))
-                  (("<") (loopA (read-line) (cons @< command-list)))
-                  (("+") (loopA (read-line) (cons @+ command-list)))
-                  (("-") (loopA (read-line) (cons @- command-list)))
-                  ((".") (loopA (read-line) (cons |@.| command-list)))
-                  ((",") (loopA (read-line) (cons |@,| command-list)))
-                  (("]") (let ((point (vector-last vec)))
+                (cond
+                  [(string=? answer ">") (loopA (read-line) (cons @> command-list))]
+                  [(string=? answer "<") (loopA (read-line) (cons @< command-list))]
+                  [(string=? answer "+") (loopA (read-line) (cons @+ command-list))]
+                  [(string=? answer "-") (loopA (read-line) (cons @- command-list))]
+                  [(string=? answer ".") (loopA (read-line) (cons |@.| command-list))]
+                  ((string=? answer ",") (loopA (read-line) (cons |@,| command-list)))
+                  #|
+                  ((regexp-match? #rx"^\\#+{2,}$" answer)
+                   (loopA (read-line) (append (make-list (string-length answer) @+) command-list)))
+                  ((regexp-match? #rx"^\\-{2,}$" answer)
+                   (loopA (read-line) (append (make-list (string-length answer) @-) command-list)))
+                  |#               
+                  ((and (> (string-length answer) 1) (equal? #\+ (string-ref answer 0)))
+                   (loopA (read-line) (append (make-list (string-length answer) @+) command-list)))
+                  ((and (> (string-length answer) 1) (equal? #\- (string-ref answer 0)))
+                   (loopA (read-line) (append (make-list (string-length answer) @-) command-list)))
+                  ((string=? answer "]") (let ((point (vector-last vec)))
                            ;  (brain-eval                            
                            ; (for/fold ((new-vec vec)) ((new-command command-list)) (new-command new-vec)))))))) ;fold-pattern
                            (let loopC ((vec vec))
-                             (if (zero? (vector-ref vec point)) vec
+                             (if (zero? (vector-ref vec point)) (brain-eval vec)
                                  (loopC 
                                   (let loopB ((command (reverse command-list)) (new-vec vec))
                                     (let ((new-point (vector-last new-vec)))
                                       (if (null? command) (loopC new-vec)
                                           (loopB (cdr command) ((car command) new-vec))))))))))
                   (else (loopA (read-line) command-list))))))
-                 
-                  
-                
+
               
 
 (define (brain-eval world)
